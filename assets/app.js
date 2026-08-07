@@ -59,6 +59,8 @@ async function gateBoot(onReady){
   });
 }
 
+// Match the Python side: strip accents before tokenising, so "Pokemon" and "Pokémon" are one word
+const fold = s => String(s).normalize('NFKD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
 const esc = s => String(s).replace(/[&<>"]/g, c => (
   {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 function hms(t){
@@ -247,7 +249,7 @@ function initIndex(){
     if (keys === null){ status.textContent = 'Try a more specific word.'; return; }
     grid.style.display = 'none';
     results.innerHTML = '';
-    const needle = term.toLowerCase();
+    const needle = fold(term);
     let shown = 0, eps = 0;
     // In flights of eight. Fetched one at a time, a common word like "half" meant 122 sequential
     // round trips before the last result appeared; the work was never the decryption, it was
@@ -261,7 +263,7 @@ function initIndex(){
       for (const d of loaded){
       if (!d) continue;
       const key = d.key;
-      const hits = d.l.filter(l => l[2].toLowerCase().includes(needle));
+      const hits = d.l.filter(l => fold(l[2]).includes(needle));
       if (!hits.length) continue;
       eps++;
       const div = document.createElement('div');
@@ -276,7 +278,7 @@ function initIndex(){
         const a = document.createElement('a');
         a.href = to + '#t' + t; a.textContent = hms(t);
         const p = document.createElement('p');
-        const at = text.toLowerCase().indexOf(needle);
+        const at = fold(text).indexOf(needle);
         p.append(document.createTextNode((d.who[wi] ? d.who[wi] + ': ' : '') + text.slice(0, at)));
         const m = document.createElement('mark'); m.textContent = text.slice(at, at+term.length);
         p.append(m, document.createTextNode(text.slice(at + term.length)));

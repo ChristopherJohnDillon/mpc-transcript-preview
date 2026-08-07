@@ -247,10 +247,18 @@ function initIndex(){
     results.innerHTML = '';
     const needle = term.toLowerCase();
     let shown = 0, eps = 0;
-    for (const key of keys.sort((a,b) => a-b)){
+    // In flights of eight. Fetched one at a time, a common word like "half" meant 122 sequential
+    // round trips before the last result appeared; the work was never the decryption, it was
+    // waiting. Order is preserved so results still read oldest episode first.
+    const sorted = keys.sort((a,b) => a-b);
+    for (let i = 0; i < sorted.length; i += 8){
       if (mine !== run) return;
-      const d = await episode(key);
+      const batch = sorted.slice(i, i + 8);
+      const loaded = await Promise.all(batch.map(k => episode(k).catch(() => null)));
       if (mine !== run) return;
+      for (const d of loaded){
+      if (!d) continue;
+      const key = d.key;
       const hits = d.l.filter(l => l[2].toLowerCase().includes(needle));
       if (!hits.length) continue;
       eps++;
@@ -280,6 +288,7 @@ function initIndex(){
       shown += hits.length;
       status.textContent = shown + ' mention' + (shown==1?'':'s') + ' in ' + eps
         + ' episode' + (eps==1?'':'s') + ' (still looking…)';
+      }
     }
     status.textContent = shown
       ? shown + ' mention' + (shown==1?'':'s') + ' in ' + eps + ' episode' + (eps==1?'':'s')
@@ -335,7 +344,7 @@ function layout(nodes, edges, W, H){
   });
   const links = edges.map(e => [idx.get(e.a), idx.get(e.b)])
                      .filter(l => l[0] != null && l[1] != null);
-  const k = Math.sqrt(W*H / Math.max(nodes.length,1)) * 0.62;
+  const k = Math.sqrt(W*H / Math.max(nodes.length,1)) * 0.95;
   for (let it = 0; it < 340; it++){
     const temp = (1 - it/340) * W/11 + 0.4;
     for (let i = 0; i < nodes.length; i++){
@@ -365,13 +374,22 @@ function layout(nodes, edges, W, H){
 }
 
 function drawNet(data, note){
+  // A fixed drawing that scales, rather than one measured against the element. clientWidth is read
+  // before the stylesheet has laid anything out, so measuring produced a different - and usually
+  // wrong - geometry every load. The viewBox does the scaling instead, and does it correctly.
   const svg = document.getElementById('net');
-  const W = Math.max(320, svg.clientWidth || 900), H = Math.round(W * 0.62);
+  const W = 900, H = 620;
   svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
   const nodes = data.nodes.map(n => ({...n}));
   const links = layout(nodes, data.edges, W, H);
   const maxPick = Math.max(1, ...nodes.map(n => n.picks));
-  const r = n => 4 + (n.picks / maxPick) * 13;
+  const maxDeg = Math.max(1, ...nodes.map(n => n.deg));
+  const r = n => 3.5 + (n.picks / maxPick) * 9;
+  // colour carries the second variable: how many other games share a guest with this one
+  const col = n => {
+    const t = n.deg / maxDeg;
+    return t > .66 ? '#f3b1b2' : t > .33 ? '#c9a9b4' : '#7fd0c1';
+  };
 
   let s = '<g stroke="rgba(243,177,178,.28)" stroke-width="1">';
   for (const [a,b] of links)
@@ -380,18 +398,19 @@ function drawNet(data, note){
   s += '</g><g>';
   nodes.forEach((n,i) => {
     s += '<circle data-i="'+i+'" cx="'+n.x.toFixed(1)+'" cy="'+n.y.toFixed(1)+'" r="'+r(n).toFixed(1)
-       + '" fill="'+(n.picks > 2 ? '#f3b1b2' : '#7fd0c1')+'" fill-opacity=".85"'
-       + ' stroke="#04181d" stroke-width="2"><title>'+esc(n.id)+'</title></circle>';
+       + '" fill="'+col(n)+'" fill-opacity=".9"'
+       + ' stroke="#04181d" stroke-width="1.5"><title>'+esc(n.id)+' — '+n.picks+' picks</title>'
+       + '</circle>';
   });
   // Label the biggest nodes only, dropping any label that would collide with one already placed:
   // two overlapping names are worse than one name plus a tooltip.
-  s += '</g><g font-size="11" fill="rgba(255,255,255,.82)" text-anchor="middle"'
-     + ' pointer-events="none">';
+  s += '</g><g font-size="12" font-weight="600" fill="rgba(255,255,255,.9)" text-anchor="middle"'
+     + ' pointer-events="none" paint-order="stroke" stroke="#04181d" stroke-width="3">';
   const placed = [];
   const hit = (a,b) => !(a.x2 < b.x1 || b.x2 < a.x1 || a.y2 < b.y1 || b.y2 < a.y1);
-  [...nodes].sort((a,b) => b.picks - a.picks).slice(0, 18).forEach(n => {
-    const txt = n.id.length > 26 ? n.id.slice(0,24) + '…' : n.id;
-    const w = txt.length * 5.6, y = n.y - r(n) - 5;
+  [...nodes].sort((a,b) => b.picks - a.picks).slice(0, 14).forEach(n => {
+    const txt = n.id.length > 22 ? n.id.slice(0,20) + '…' : n.id;
+    const w = txt.length * 6.4, y = n.y - r(n) - 6;
     const box = {x1:n.x-w/2-2, x2:n.x+w/2+2, y1:y-10, y2:y+3};
     if (box.x1 < 2 || box.x2 > W-2) return;
     if (placed.some(p => hit(box,p))) return;
@@ -408,6 +427,76 @@ function drawNet(data, note){
     c.addEventListener('mouseenter', say);
     c.addEventListener('click', say);
   });
+}
+
+// A scatter of every episode with a rolling mean through it. The cloud is the honest picture -
+// episode length is noisy - and the line is the only way to see whether it is drifting.
+function chart(points, opt){
+  const W = 900, H = 300, L = 44, R = 12, T = 16, B = 30;
+  const vals = points.map(p => p.v);
+  const lo = opt.zero ? 0 : Math.floor(Math.min(...vals) / opt.step) * opt.step;
+  const hi = Math.ceil(Math.max(...vals) / opt.step) * opt.step;
+  const x = i => L + i / Math.max(1, points.length - 1) * (W - L - R);
+  const y = v => T + (1 - (v - lo) / (hi - lo || 1)) * (H - T - B);
+
+  let s = '<svg class="chart" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="'
+        + esc(opt.label) + '">';
+  for (let g = lo; g <= hi; g += opt.step){
+    s += '<line x1="' + L + '" x2="' + (W-R) + '" y1="' + y(g).toFixed(1) + '" y2="'
+       + y(g).toFixed(1) + '" stroke="rgba(255,255,255,.10)"/>'
+       + '<text x="' + (L-8) + '" y="' + (y(g)+4).toFixed(1) + '" text-anchor="end"'
+       + ' font-size="11" fill="rgba(255,255,255,.45)">' + g + (opt.unit || '') + '</text>';
+  }
+  s += '<g fill="' + opt.colour + '" fill-opacity=".45">';
+  points.forEach((p, i) => {
+    s += '<circle cx="' + x(i).toFixed(1) + '" cy="' + y(p.v).toFixed(1) + '" r="2.6">'
+       + '<title>' + esc(p.t) + '</title></circle>';
+  });
+  s += '</g>';
+  // rolling mean, wide enough to be a trend rather than an echo of the scatter
+  const win = 11, half = (win - 1) / 2;
+  let path = '';
+  points.forEach((p, i) => {
+    const from = Math.max(0, i - half), to = Math.min(points.length, i + half + 1);
+    let sum = 0;
+    for (let j = from; j < to; j++) sum += points[j].v;
+    const m = sum / (to - from);
+    path += (path ? 'L' : 'M') + x(i).toFixed(1) + ' ' + y(m).toFixed(1) + ' ';
+  });
+  s += '<path d="' + path + '" fill="none" stroke="' + opt.colour + '" stroke-width="2.5"'
+     + ' stroke-linejoin="round"/>';
+  const first = points[0], last = points[points.length-1];
+  s += '<text x="' + L + '" y="' + (H-8) + '" font-size="11" fill="rgba(255,255,255,.45)">'
+     + esc(first.x) + '</text>'
+     + '<text x="' + (W-R) + '" y="' + (H-8) + '" text-anchor="end" font-size="11"'
+     + ' fill="rgba(255,255,255,.45)">' + esc(last.x) + '</text>'
+     + '<text x="' + ((W+L)/2) + '" y="' + (H-8) + '" text-anchor="middle" font-size="11"'
+     + ' fill="rgba(255,255,255,.32)">' + esc(opt.foot) + '</text>';
+  return s + '</svg>';
+}
+
+function columns(bins, opt){
+  const W = 900, H = 240, L = 44, R = 12, T = 16, B = 34;
+  const hi = Math.max(...bins.map(b => b.n));
+  const bw = (W - L - R) / bins.length;
+  let s = '<svg class="chart" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="'
+        + esc(opt.label) + '">';
+  for (let g = 0; g <= hi; g += opt.step){
+    const y = T + (1 - g/hi) * (H - T - B);
+    s += '<line x1="' + L + '" x2="' + (W-R) + '" y1="' + y.toFixed(1) + '" y2="' + y.toFixed(1)
+       + '" stroke="rgba(255,255,255,.10)"/>'
+       + '<text x="' + (L-8) + '" y="' + (y+4).toFixed(1) + '" text-anchor="end" font-size="11"'
+       + ' fill="rgba(255,255,255,.45)">' + g + '</text>';
+  }
+  bins.forEach((b, i) => {
+    const h = b.n / hi * (H - T - B), bx = L + i*bw + bw*0.14, bwid = bw*0.72;
+    s += '<rect x="' + bx.toFixed(1) + '" y="' + (H - B - h).toFixed(1) + '" width="'
+       + bwid.toFixed(1) + '" height="' + Math.max(1,h).toFixed(1) + '" rx="3" fill="'
+       + opt.colour + '" fill-opacity=".8"><title>' + esc(b.lab + ': ' + b.n) + '</title></rect>'
+       + '<text x="' + (bx + bwid/2).toFixed(1) + '" y="' + (H-12) + '" text-anchor="middle"'
+       + ' font-size="11" fill="rgba(255,255,255,.45)">' + esc(b.tick) + '</text>';
+  });
+  return s + '</svg>';
 }
 
 function renderStats(d){
@@ -438,13 +527,16 @@ function renderStats(d){
     + '<span class="g"><b>Guest</b> ' + (100 - t.host_share).toFixed(1) + '%</span></p>';
 
   const sorted = [...shares].sort((a,b) => a.s - b.s);
-  h += '<div class="spread">' + sorted.map(s =>
-        '<i class="' + (s.s > 40 ? 'hi' : '') + '" style="height:' + Math.min(100, s.s*2)
-        + '%" title="' + esc(s.guest) + ': ' + s.s + '%"></i>').join('') + '</div>'
-    + '<p class="axis"><span>' + esc(sorted[0].guest) + ' · ' + sorted[0].s + '%</span>'
-    + '<span>one bar per episode, least talkative host to most</span>'
-    + '<span>' + esc(sorted[sorted.length-1].guest) + ' · '
-    + sorted[sorted.length-1].s + '%</span></p>';
+  const bins = {};
+  for (const x of sorted){ const b = Math.floor(x.s / 5) * 5; bins[b] = (bins[b] || 0) + 1; }
+  const lo = Math.min(...Object.keys(bins).map(Number)), hi = Math.max(...Object.keys(bins).map(Number));
+  const spread = [];
+  for (let b = lo; b <= hi; b += 5)
+    spread.push({lab: b + '–' + (b+4) + '%', tick: b, n: bins[b] || 0});
+  h += columns(spread, {colour:'#f3b1b2', step: 5, label:"Episodes by Simon's share"})
+    + '<p class="cap">' + esc(sorted[0].guest) + ' at ' + sorted[0].s + '% to '
+    + esc(sorted[sorted.length-1].guest) + ' at ' + sorted[sorted.length-1].s
+    + '% — one column per five points</p>';
 
   const share = e => ({lab: e.guest || ('Episode ' + e.key), val: e.host_share + '%',
                        n: e.host_share});
@@ -454,18 +546,52 @@ function renderStats(d){
      + rowList(t.most_host.map(share), 60);
 
   // --- length
-  const maxLen = Math.max(...t.lengths.map(b => b.n));
   h += '<h2>How long an episode runs</h2>'
     + '<p class="note">The median is ' + t.median_mins + ' minutes and the mean '
-    + t.mean_mins + ', which is about as evenly shaped as a conversation gets.</p>'
-    + rowList(t.lengths.map(b => ({lab: b.at + '–' + (b.at+9) + ' min',
-                                   val: b.n + (b.n === 1 ? ' episode' : ' episodes'), n: b.n})),
-              maxLen, 'g');
+    + t.mean_mins + '. Two thirds of the run sits in a twenty-minute band.</p>'
+    + columns(t.lengths.map(b => ({lab: b.at + '–' + (b.at+9) + ' min', tick: b.at, n: b.n})),
+              {colour:'#7fd0c1', step: 10, label:'Episodes by length'})
+    + '<p class="cap">minutes · one column per ten-minute band</p>';
+
+  const series = t.series;
+  h += '<h2>Is the show getting longer?</h2>'
+    + '<p class="note">Every episode as a dot, in broadcast order, with an eleven-episode rolling'
+    + ' mean through it.</p>'
+    + chart(series.map(x => ({v: x.m, x: x.d.slice(0,7),
+                              t: x.g + ' — ' + Math.round(x.m) + ' min'})),
+            {colour:'#f3b1b2', step: 20, unit:'m', label:'Episode length over time',
+             foot:'episode length, minutes'});
+
+  h += '<h2>Does Simon talk more or less over time?</h2>'
+    + '<p class="note">His share of the words in each episode. The scatter is wide because the'
+    + ' guest decides it, but the trend is the show finding its shape.</p>'
+    + chart(series.filter(x => x.s != null).map(x => ({v: x.s, x: x.d.slice(0,7),
+                              t: x.g + ' — Simon ' + x.s + '%'})),
+            {colour:'#7fd0c1', step: 10, unit:'%', zero: true,
+             label:'Host share over time', foot:"Simon's share of the words"});
   const len = e => ({lab: e.guest || ('Episode ' + e.key), val: Math.round(e.mins) + ' min',
                      n: e.mins});
   h += '<h2>Longest and shortest</h2>'
      + rowList(t.longest.map(len), t.longest[0].mins)
      + rowList(t.shortest.map(len), t.longest[0].mins, 'g');
+
+  // --- the interviewer's opening move
+  const c = d.childhood;
+  h += '<h2>Simon asks about your childhood</h2>'
+    + '<p class="note">He does it in <b>' + c.episodes + ' of ' + c.of + ' episodes</b> — '
+    + Math.round(c.episodes / c.of * 100) + '% — and ' + fmt(c.questions) + ' times in all.'
+    + ' Counted only on his own questions, so a guest raising it unprompted does not score.</p>'
+    + '<p class="note">The obvious question is the one he does not ask: what your'
+    + ' <em>first</em> game was comes up four times in ' + c.of + ' episodes. He asks about the'
+    + ' house you grew up in instead.</p>'
+    + rowList(c.phrases.map(x => ({lab: x.lab, val: x.n + '×, in ' + x.eps + ' episodes',
+                                   n: x.n})), c.phrases[0].n);
+  if (c.samples.length){
+    h += '<ul class="rows quotes">' + c.samples.slice(0,4).map(s =>
+      '<li class="quote"><a href="' + ROOT + 'e/' + String(s.key).padStart(3,'0') + '.html">'
+      + esc(s.guest || ('Episode ' + s.key)) + '</a><p>' + esc(s.q) + '</p></li>').join('')
+      + '</ul>';
+  }
 
   // --- picks
   const top = p.most_picked.slice(0, 15);
@@ -497,11 +623,7 @@ function renderStats(d){
   document.getElementById('app').innerHTML = h;
   const net = p.network['3'] || p.network[3];
   drawNet(net, document.getElementById('netnote'));
-  let timer;
-  window.addEventListener('resize', () => {
-    clearTimeout(timer);
-    timer = setTimeout(() => drawNet(net, document.getElementById('netnote')), 250);
-  });
+
 }
 
 async function start(){

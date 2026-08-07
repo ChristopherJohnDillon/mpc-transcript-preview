@@ -341,94 +341,57 @@ function rowList(items, max, cls){
     + Math.max(2, Math.round(it.n / max * 100)) + '%"></i></span></li>').join('') + '</ul>';
 }
 
-// The co-pick network: two games are linked when one guest chose both. Laid out here rather than
-// shipped as coordinates, so the drawing fits whatever width the reader's screen actually is.
-function layout(nodes, edges, W, H){
-  const idx = new Map(nodes.map((n,i) => [n.id, i]));
-  nodes.forEach((n,i) => {
-    const a = i / nodes.length * Math.PI * 2;
-    n.x = W/2 + Math.cos(a) * W/3.4; n.y = H/2 + Math.sin(a) * H/3.4; n.vx = n.vy = 0;
-  });
-  const links = edges.map(e => [idx.get(e.a), idx.get(e.b)])
-                     .filter(l => l[0] != null && l[1] != null);
-  const k = Math.sqrt(W*H / Math.max(nodes.length,1)) * 0.95;
-  for (let it = 0; it < 340; it++){
-    const temp = (1 - it/340) * W/11 + 0.4;
-    for (let i = 0; i < nodes.length; i++){
-      let fx = 0, fy = 0;
-      for (let j = 0; j < nodes.length; j++){
-        if (i === j) continue;
-        let dx = nodes[i].x - nodes[j].x, dy = nodes[i].y - nodes[j].y;
-        let d2 = dx*dx + dy*dy;
-        if (d2 < 0.01){ dx = Math.random()-0.5; dy = Math.random()-0.5; d2 = 0.01; }
-        const f = k*k/d2; fx += dx*f; fy += dy*f;
-      }
-      nodes[i].vx = fx; nodes[i].vy = fy;
-    }
-    for (const [a,b] of links){
-      const dx = nodes[a].x - nodes[b].x, dy = nodes[a].y - nodes[b].y;
-      const d = Math.hypot(dx,dy) || 0.01, f = d/k;
-      nodes[a].vx -= dx*f; nodes[a].vy -= dy*f; nodes[b].vx += dx*f; nodes[b].vy += dy*f;
-    }
-    for (const n of nodes){
-      const s = Math.hypot(n.vx,n.vy) || 1, m = Math.min(s,temp)/s;
-      n.x = Math.max(26, Math.min(W-26, n.x + n.vx*m));
-      n.y = Math.max(22, Math.min(H-22, n.y + n.vy*m));
-      n.x += (W/2 - n.x) * 0.006; n.y += (H/2 - n.y) * 0.006;
-    }
-  }
-  return links;
-}
+// Draws what network_layout already solved. The browser does no layout work: positions, radii
+// and communities arrive with the data, so the picture is identical on every load and on every
+// machine, which a random-start force simulation could never promise.
+const NET_COLOURS = ['#f3b1b2', '#7fd0c1', '#e0b088', '#b9a6cd', '#8fb8d8', '#d59aa8'];
 
-function drawNet(data, note){
-  // A fixed drawing that scales, rather than one measured against the element. clientWidth is read
-  // before the stylesheet has laid anything out, so measuring produced a different - and usually
-  // wrong - geometry every load. The viewBox does the scaling instead, and does it correctly.
+function drawNet(net, note){
   const svg = document.getElementById('net');
-  const W = 900, H = 620;
-  svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
-  const nodes = data.nodes.map(n => ({...n}));
-  const links = layout(nodes, data.edges, W, H);
-  const maxPick = Math.max(1, ...nodes.map(n => n.picks));
-  const maxDeg = Math.max(1, ...nodes.map(n => n.deg));
-  const r = n => 3.5 + (n.picks / maxPick) * 9;
-  // colour carries the second variable: how many other games share a guest with this one
-  const col = n => {
-    const t = n.deg / maxDeg;
-    return t > .66 ? '#f3b1b2' : t > .33 ? '#c9a9b4' : '#7fd0c1';
-  };
+  svg.setAttribute('viewBox', '0 0 ' + net.w + ' ' + net.h);
+  const at = {};
+  net.nodes.forEach(n => at[n.id] = n);
+  const maxW = Math.max(1, ...net.edges.map(e => e.w || 1));
 
-  let s = '<g stroke="rgba(243,177,178,.28)" stroke-width="1">';
-  for (const [a,b] of links)
-    s += '<line x1="'+nodes[a].x.toFixed(1)+'" y1="'+nodes[a].y.toFixed(1)
-       + '" x2="'+nodes[b].x.toFixed(1)+'" y2="'+nodes[b].y.toFixed(1)+'"/>';
+  let s = '<g stroke-linecap="round">';
+  for (const e of net.edges){
+    const a = at[e.a], b = at[e.b];
+    if (!a || !b) continue;
+    // shared-guest count carries into the line: two guests agreeing is twice the evidence
+    const w = (e.w || 1) / maxW;
+    s += '<line x1="' + a.x + '" y1="' + a.y + '" x2="' + b.x + '" y2="' + b.y
+       + '" stroke="rgba(243,177,178,' + (0.16 + 0.34 * w).toFixed(2) + ')" stroke-width="'
+       + (0.8 + 1.8 * w).toFixed(1) + '"/>';
+  }
   s += '</g><g>';
-  nodes.forEach((n,i) => {
-    s += '<circle data-i="'+i+'" cx="'+n.x.toFixed(1)+'" cy="'+n.y.toFixed(1)+'" r="'+r(n).toFixed(1)
-       + '" fill="'+col(n)+'" fill-opacity=".9"'
-       + ' stroke="#04181d" stroke-width="1.5"><title>'+esc(n.id)+' — '+n.picks+' picks</title>'
-       + '</circle>';
+  net.nodes.forEach((n, i) => {
+    s += '<circle data-i="' + i + '" cx="' + n.x + '" cy="' + n.y + '" r="' + n.r
+       + '" fill="' + NET_COLOURS[n.c % NET_COLOURS.length] + '" fill-opacity=".88"'
+       + ' stroke="#04181d" stroke-width="1.5"><title>' + esc(n.id) + ' — ' + n.picks
+       + ' picks</title></circle>';
   });
-  // Label the biggest nodes only, dropping any label that would collide with one already placed:
-  // two overlapping names are worse than one name plus a tooltip.
-  s += '</g><g font-size="12" font-weight="600" fill="rgba(255,255,255,.9)" text-anchor="middle"'
-     + ' pointer-events="none" paint-order="stroke" stroke="#04181d" stroke-width="3">';
+  s += '</g><g font-size="12" font-weight="600" fill="#fff" text-anchor="middle"'
+     + ' pointer-events="none" paint-order="stroke" stroke="#04181d" stroke-width="3.5">';
+  // Label the hubs, and drop any label that would collide with one already placed: two
+  // overlapping names are less legible than one name and a tooltip.
   const placed = [];
   const hit = (a,b) => !(a.x2 < b.x1 || b.x2 < a.x1 || a.y2 < b.y1 || b.y2 < a.y1);
-  [...nodes].sort((a,b) => b.picks - a.picks).slice(0, 14).forEach(n => {
-    const txt = n.id.length > 22 ? n.id.slice(0,20) + '…' : n.id;
-    const w = txt.length * 6.4, y = n.y - r(n) - 6;
-    const box = {x1:n.x-w/2-2, x2:n.x+w/2+2, y1:y-10, y2:y+3};
-    if (box.x1 < 2 || box.x2 > W-2) return;
+  [...net.nodes].sort((a,b) => b.picks - a.picks || b.deg - a.deg).forEach(n => {
+    if (placed.length >= 16) return;
+    const txt = n.id.length > 24 ? n.id.slice(0,22) + '…' : n.id;
+    const w = txt.length * 6.4, y = n.y - n.r - 6;
+    const box = {x1:n.x-w/2-2, x2:n.x+w/2+2, y1:y-11, y2:y+3};
+    if (box.x1 < 2 || box.x2 > net.w - 2 || box.y1 < 2) return;
     if (placed.some(p => hit(box,p))) return;
     placed.push(box);
-    s += '<text x="'+n.x.toFixed(1)+'" y="'+y.toFixed(1)+'">'+esc(txt)+'</text>';
+    s += '<text x="' + n.x + '" y="' + y.toFixed(1) + '">' + esc(txt) + '</text>';
   });
   svg.innerHTML = s + '</g>';
+
   svg.querySelectorAll('circle').forEach(c => {
-    const n = nodes[+c.dataset.i];
+    const n = net.nodes[+c.dataset.i];
     const say = () => note.innerHTML = '<b>' + esc(n.id) + '</b> — chosen ' + n.picks
-      + ' times, and shares a guest with ' + n.deg + ' other game' + (n.deg === 1 ? '' : 's')
+      + ' times, sharing a guest with ' + n.deg + ' other game' + (n.deg === 1 ? '' : 's')
       + (n.guests ? '.<br>Picked by ' + esc(n.guests.slice(0,4).join(', '))
          + (n.guests.length > 4 ? ' and ' + (n.guests.length-4) + ' more' : '') + '.' : '');
     c.addEventListener('mouseenter', say);
@@ -508,7 +471,7 @@ function columns(bins, opt){
 
 function renderStats(d){
   const t = d.transcripts, p = d.picks, c = d.childhood;
-  if (!t || !t.series || !c){
+  if (!t || !t.series || !c || !d.network){
     document.getElementById('app').innerHTML =
       '<p class="loading">These numbers are from an older build. Reload the page.</p>';
     return;
@@ -623,9 +586,10 @@ function renderStats(d){
       Math.max(...p.distribution.map(x => x.titles)), 'g');
 
   h += '<h2>Games that travel together</h2>'
-    + '<p class="note">Two games are joined when the same guest chose both. Size is how often a'
-    + ' game is picked; only games chosen three times or more are shown, or the picture is'
-    + ' a haze. Touch a game to see who chose it.</p>'
+    + '<p class="note">Two games are joined when the same guest chose both, and thicker lines'
+    + ' mean more guests agreed. Colour is a detected community — games that cluster because the'
+    + ' same people keep choosing them together. Circle area is how often a game is picked. Only'
+    + ' games chosen three times or more are shown. Touch a game to see who chose it.</p>'
     + '<svg id="net" role="img" aria-label="Games linked when chosen by the same guest"></svg>'
     + '<p class="netnote" id="netnote">Hades and World of Warcraft are chosen as often as'
     + ' Breath of the Wild, but by guests who agree on nothing else.</p>';
@@ -634,8 +598,7 @@ function renderStats(d){
      + ' labelling, so they carry those errors. The picks are the show\'s own.</p></footer>';
 
   document.getElementById('app').innerHTML = h;
-  const net = p.network['3'] || p.network[3];
-  drawNet(net, document.getElementById('netnote'));
+  drawNet(d.network, document.getElementById('netnote'));
 
 }
 

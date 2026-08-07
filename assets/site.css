@@ -245,6 +245,27 @@ footer p{margin:0 0 .4rem}
 .chart{width:100%; height:auto; display:block; margin:.4rem 0 .2rem; overflow:visible}
 .cap{color:var(--faint); font-size:.76rem; margin:0 0 .5rem; text-align:center}
 .stats .note em{color:var(--salmon); font-style:normal; font-weight:600}
+.chapters{border:2px solid var(--line); border-radius:1rem; background:rgba(0,0,0,.28);
+  padding:1.1rem 1.2rem 1rem; margin:0 0 2.5rem}
+.chapters h2{font-size:.72rem; letter-spacing:.16em; text-transform:uppercase; color:var(--dim);
+  margin:0 0 .5rem; font-weight:600}
+.chapters ol{list-style:none; margin:0; padding:0}
+.chapters li{border-top:1px solid var(--line)}
+.chapters li:first-child{border-top:0}
+.jump{display:grid; grid-template-columns:3.6rem 1fr auto; gap:.8rem; align-items:baseline;
+  width:100%; background:none; border:0; padding:.5rem 0; color:inherit; font:inherit;
+  text-align:left; cursor:pointer}
+.jump:hover .what,.jump:focus-visible .what{color:var(--salmon)}
+.jump:focus-visible{outline:2px solid var(--salmon); outline-offset:2px}
+.jump .at{color:var(--salmon); font-size:.8rem; font-variant-numeric:tabular-nums}
+.jump .what{font-size:.95rem}
+.jump .len{color:var(--faint); font-size:.78rem; font-variant-numeric:tabular-nums;
+  white-space:nowrap}
+.filter{display:flex; align-items:center; gap:.8rem; margin:0 0 1rem}
+.filter input{flex:1; padding:.5rem .9rem; border-radius:2rem; border:2px solid var(--line);
+  background:rgba(0,0,0,.35); color:var(--text); font:inherit; font-size:.88rem}
+.filter input:focus{outline:2px solid var(--salmon); outline-offset:1px; border-color:transparent}
+.filter span{color:var(--faint); font-size:.78rem; white-space:nowrap}
 .quotes{margin:1.25rem 0 0}
 .quote{border-left:2px solid var(--line); padding:.15rem 0 .15rem 1rem; margin:0 0 1rem}
 .quote a{color:var(--salmon); font-size:.76rem; font-weight:600; text-decoration:none;

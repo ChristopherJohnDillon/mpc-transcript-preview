@@ -202,12 +202,13 @@ footer p{margin:0 0 .4rem}
 .nav a:hover{border-color:var(--salmon); color:var(--salmon)}
 .nav a[aria-current]{border-color:var(--salmon); color:var(--salmon)}
 
-.figures{display:grid; grid-template-columns:repeat(auto-fit,minmax(9rem,1fr)); gap:1rem;
+.figures{display:grid; grid-template-columns:repeat(auto-fit,minmax(8rem,1fr)); gap:.75rem;
   margin:0 0 3rem; padding:0; list-style:none}
 .figure{border:2px solid var(--line); border-radius:1rem; background:rgba(0,0,0,.28);
-  padding:1.1rem 1.15rem}
-.figure b{display:block; font-size:1.9rem; font-weight:600; color:var(--salmon);
-  letter-spacing:-.02em; line-height:1.1; font-variant-numeric:tabular-nums}
+  padding:1rem .95rem; min-width:0}
+.figure b{display:block; font-size:clamp(1.25rem,3.4vw,1.75rem); font-weight:600;
+  color:var(--salmon); letter-spacing:-.03em; line-height:1.1; font-variant-numeric:tabular-nums;
+  overflow-wrap:anywhere}
 .figure span{display:block; color:var(--faint); font-size:.78rem; margin-top:.35rem}
 
 .stats h2{font-size:1.15rem; margin:2.75rem 0 .4rem}

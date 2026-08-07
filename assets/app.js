@@ -477,7 +477,7 @@ function columns(bins, opt){
 
 function renderStats(d){
   const t = d.transcripts, p = d.picks, c = d.childhood;
-  if (!t || !t.series || !c || !d.network){
+  if (!t || !t.series || !c || !d.network || !d.airtime){
     document.getElementById('app').innerHTML =
       '<p class="loading">These numbers are from an older build. Reload the page.</p>';
     return;
@@ -557,6 +557,19 @@ function renderStats(d){
   h += '<h2>Longest and shortest</h2>'
      + rowList(t.longest.map(len), t.longest[0].mins)
      + rowList(t.shortest.map(len), t.longest[0].mins, 'g');
+
+  // --- what actually got talked about
+  const air = d.airtime;
+  h += '<h2>The games most talked about</h2>'
+    + '<p class="note">Chosen is one question; discussed is another. These are total minutes'
+    + ' across every episode, measured from the transcript rather than counted from the pick'
+    + ' list — ' + fmt(air.hours) + ' hours of it, over ' + fmt(air.games) + ' games.</p>'
+    + rowList(air.top.map(g => ({lab: g.title, val: g.mins + ' min · ' + g.eps
+        + (g.eps === 1 ? ' episode' : ' episodes'), n: g.mins})), air.top[0].mins);
+
+  h += '<h2>The longest anyone has talked about one game</h2>'
+    + rowList(air.longest.map(g => ({lab: g.title + ' — ' + g.guest,
+        val: Math.round(g.mins) + ' min', n: g.mins})), air.longest[0].mins, 'g');
 
   // --- the interviewer's opening move
   h += '<h2>Simon asks about your childhood</h2>'

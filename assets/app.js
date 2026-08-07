@@ -391,8 +391,12 @@ function drawNet(net, note){
   svg.querySelectorAll('circle').forEach(c => {
     const n = net.nodes[+c.dataset.i];
     const say = () => note.innerHTML = '<b>' + esc(n.id) + '</b> — chosen ' + n.picks
-      + ' times, sharing a guest with ' + n.deg + ' other game' + (n.deg === 1 ? '' : 's')
-      + (n.guests ? '.<br>Picked by ' + esc(n.guests.slice(0,4).join(', '))
+      + ' times, and linked to ' + n.deg + ' other game' + (n.deg === 1 ? '' : 's') + ' here'
+      + (n.deg === 0
+          ? '. Its guests\u2019 other picks were each chosen once or twice, so none of them'
+            + ' appear on this chart — it is popular without being part of any cluster.'
+          : '.')
+      + (n.guests ? '<br>Picked by ' + esc(n.guests.slice(0,4).join(', '))
          + (n.guests.length > 4 ? ' and ' + (n.guests.length-4) + ' more' : '') + '.' : '');
     c.addEventListener('mouseenter', say);
     c.addEventListener('click', say);
@@ -589,7 +593,8 @@ function renderStats(d){
     + '<p class="note">Two games are joined when the same guest chose both, and thicker lines'
     + ' mean more guests agreed. Colour is a detected community — games that cluster because the'
     + ' same people keep choosing them together. Circle area is how often a game is picked. Only'
-    + ' games chosen three times or more are shown. Touch a game to see who chose it.</p>'
+    + ' games chosen three times or more are shown, so a link only appears when BOTH games'
+    + ' clear that bar. Touch a game to see who chose it.</p>'
     + '<svg id="net" role="img" aria-label="Games linked when chosen by the same guest"></svg>'
     + '<p class="netnote" id="netnote">Hades and World of Warcraft are chosen as often as'
     + ' Breath of the Wild, but by guests who agree on nothing else.</p>';

@@ -1,9 +1,10 @@
 # My Perfect Console — transcript preview
 
-A single episode, transcribed and speaker-labelled automatically from the audio, shown as a
-reading page. One self-contained file: no fonts, scripts or trackers to fetch.
+A private preview of automatically generated transcripts for the show's openly released episodes.
+Patreon episodes are not included: their text is not in this repository at all.
 
-Episode 1, Josh Wardle — a freely listed episode of the show.
+Everything here is encrypted. The pages, the search index and the transcripts are AES-256-GCM
+ciphertext, unlocked in the browser with a password (PBKDF2-SHA256, 240,000 iterations). Without
+the password this repository contains no readable text — not a transcript, not an episode title.
 
-Not indexed, not linked from anywhere. A demonstration of what a transcript archive could look
-like, made for the people who make the programme.
+Ask Chris for the password.

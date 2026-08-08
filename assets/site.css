@@ -77,6 +77,8 @@ h1{
 }
 .slot .n{color:var(--salmon); font-size:.82rem; font-variant-numeric:tabular-nums}
 .slot .title{font-weight:600}
+/* the console also lists naming the machine and the sign-off, which are not picks */
+.slot.plain .title{color:var(--dim); font-weight:500}
 .slot .mins{color:var(--dim); font-size:.82rem; font-variant-numeric:tabular-nums; white-space:nowrap}
 .bar{grid-column:2/5; height:3px; background:var(--salmon); border-radius:3px; opacity:.35}
 

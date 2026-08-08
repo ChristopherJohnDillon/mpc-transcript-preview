@@ -147,7 +147,15 @@ function renderEpisode(d, back){
       + esc(text) + '</p></div>';
   }
   if (last !== null) out += '</div>';
-  return h + out + '</main><footer class="wrap"><p>Transcribed and speaker-labelled'
+  const near = d.around || {};
+  const step = (k, label) => k
+    ? '<a class="step" href="' + ROOT + 'e/' + String(k).padStart(3,'0') + '.html">'
+      + esc(label) + '</a>'
+    : '<span class="step off">' + esc(label) + '</span>';
+  return h + out + '</main>'
+    + '<nav class="wrap walk">' + step(near.prev, '\u2190 Previous episode')
+    + step(near.next, 'Next episode \u2192') + '</nav>'
+    + '<footer class="wrap"><p>Transcribed and speaker-labelled'
     + ' automatically from the episode audio.</p></footer>';
 }
 
@@ -183,6 +191,21 @@ function wireEpisode(){
     document.querySelectorAll('.chapter').forEach(c => c.classList.toggle('hidden', !!term));
     count.textContent = term ? (hits ? hits + ' mention' + (hits==1?'':'s') : 'nothing found') : '';
   });
+  // Every line already has an id; nothing said so. Clicking the time copies a link to it.
+  document.querySelectorAll('.line').forEach(row => {
+    const at = row.querySelector('.t');
+    if (!at) return;
+    at.title = 'Copy a link to this line';
+    at.style.cursor = 'pointer';
+    at.addEventListener('click', async () => {
+      const url = location.origin + location.pathname + '#' + row.id;
+      try { await navigator.clipboard.writeText(url); } catch { return; }
+      const was = at.textContent;
+      at.textContent = 'copied';
+      setTimeout(() => at.textContent = was, 1200);
+    });
+  });
+
   document.querySelectorAll('.open, .jump').forEach(b => b.addEventListener('click', () => {
     const el = document.getElementById(b.dataset.go);
     if (!el) return;
@@ -637,6 +660,32 @@ function renderStats(d){
       Math.max(...p.distribution.map(x => x.titles)), 'g');
 
   // --- the consoles: the show's own running joke, and never shown until now
+  // --- the picks against the wider record
+  const g = d.igdb;
+  if (g){
+    h += '<h2>When the games came out</h2>'
+      + '<p class="note">The median pick was released in <b>' + g.median_year + '</b>. Joined to'
+      + ' IGDB by title, which places ' + Math.round(g.joined / g.of * 100) + '% of picks — the'
+      + ' rest are things IGDB does not carry: crosswords, a synthesiser, performance art, a'
+      + ' guest\u2019s own unreleased work.</p>'
+      + columns(g.decades.map(x => ({lab: x.at + 's', tick: x.at, n: x.n})),
+                {colour:'#f3b1b2', step: 50, label:'Picks by release decade'})
+      + '<p class="cap">release decade · ' + fmt(g.joined) + ' picks placed</p>';
+
+    h += '<h2>Critics and players</h2>'
+      + '<p class="note">Across the ' + g.scored + ' picks IGDB scores both ways, critics average'
+      + ' <b>' + g.critic_mean + '</b> and players <b>' + g.user_mean + '</b> — close enough that'
+      + ' the show is not really choosing sides. The disagreements are the interesting part.</p>'
+      + '<h3 class="sub">Critics rated these far higher</h3>'
+      + rowList(g.critics_liked.map(x => ({lab: x.t,
+          val: 'critics ' + x.critic + ' · players ' + x.user, n: x.critic - x.user})),
+        Math.max(...g.critics_liked.map(x => x.critic - x.user)))
+      + '<h3 class="sub">Players rated these far higher</h3>'
+      + rowList(g.players_liked.map(x => ({lab: x.t,
+          val: 'players ' + x.user + ' · critics ' + x.critic, n: x.user - x.critic})),
+        Math.max(...g.players_liked.map(x => x.user - x.critic)), 'g');
+  }
+
   h += '<h2>What they call the thing</h2>'
     + '<p class="note">Every guest has to name their imaginary console. Most settle for two or'
     + ' three words. A few do not.</p>'

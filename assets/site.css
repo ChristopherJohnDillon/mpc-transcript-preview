@@ -212,6 +212,8 @@ footer p{margin:0 0 .4rem}
 .figure span{display:block; color:var(--faint); font-size:.78rem; margin-top:.35rem}
 
 .stats h2{font-size:1.15rem; margin:2.75rem 0 .4rem}
+.stats h3.sub{font-size:.82rem; letter-spacing:.08em; text-transform:uppercase; color:var(--dim);
+  margin:1.5rem 0 .3rem; font-weight:600}
 .stats .note{color:var(--faint); font-size:.82rem; margin:0 0 1.1rem; max-width:36rem}
 
 .rows{list-style:none; margin:0; padding:0}
@@ -261,6 +263,11 @@ footer p{margin:0 0 .4rem}
 .jump .what{font-size:.95rem}
 .jump .len{color:var(--faint); font-size:.78rem; font-variant-numeric:tabular-nums;
   white-space:nowrap}
+.walk{display:flex; justify-content:space-between; gap:1rem; margin:0 0 2.5rem}
+.step{font-size:.82rem; font-weight:600; text-decoration:none; color:var(--text);
+  background:var(--raise); border:2px solid var(--line); border-radius:2rem; padding:.4rem 1rem}
+.step:hover{border-color:var(--salmon); color:var(--salmon)}
+.step.off{opacity:.35; border-style:dashed}
 .listen{color:var(--salmon); text-decoration:none; font-weight:600; white-space:nowrap}
 .listen:hover{text-decoration:underline}
 .filter{display:flex; align-items:center; gap:.8rem; margin:0 0 1rem}

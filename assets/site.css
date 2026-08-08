@@ -247,6 +247,26 @@ footer p{margin:0 0 .4rem}
 .chart{width:100%; height:auto; display:block; margin:.4rem 0 .2rem; overflow:visible}
 .cap{color:var(--faint); font-size:.76rem; margin:0 0 .5rem; text-align:center}
 .stats .note em{color:var(--salmon); font-style:normal; font-weight:600}
+.panel{border:2px solid var(--line); border-radius:1rem; background:rgba(0,0,0,.28);
+  padding:1.1rem 1.2rem 1.2rem; margin:0 0 2rem}
+.panel h2{font-size:.72rem; letter-spacing:.16em; text-transform:uppercase; color:var(--dim);
+  margin:0 0 .8rem; font-weight:600}
+.figures.small{grid-template-columns:repeat(auto-fit,minmax(6.5rem,1fr)); gap:.6rem;
+  margin:0 0 1.1rem}
+.figures.small .figure{border-width:1px; padding:.7rem .8rem}
+.figures.small .figure b{font-size:clamp(1.05rem,3vw,1.35rem)}
+.strip{display:flex; gap:1px; height:2.1rem; border-radius:.4rem; overflow:hidden; margin:0 0 .4rem}
+.strip i{flex:1 1 0; min-width:0}
+.strip i.h{background:var(--salmon)} .strip i.g{background:var(--guest)}
+.strip i.o{background:rgba(255,255,255,.12)}
+.cap.left{text-align:left; margin-top:1.1rem}
+.key{font-weight:600} .key.h{color:var(--salmon)} .key.g{color:var(--guest)}
+.terms{display:flex; flex-wrap:wrap; gap:.4rem; margin:.4rem 0 0}
+.terms a{display:inline-flex; align-items:baseline; gap:.35rem; text-decoration:none;
+  border:1px solid var(--line); border-radius:2rem; padding:.2rem .7rem; font-size:.85rem;
+  color:var(--text)}
+.terms a:hover{border-color:var(--salmon); color:var(--salmon)}
+.terms a span{color:var(--faint); font-size:.72rem; font-variant-numeric:tabular-nums}
 .chapters{border:2px solid var(--line); border-radius:1rem; background:rgba(0,0,0,.28);
   padding:1.1rem 1.2rem 1rem; margin:0 0 2.5rem}
 .chapters h2{font-size:.72rem; letter-spacing:.16em; text-transform:uppercase; color:var(--dim);

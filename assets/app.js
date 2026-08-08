@@ -124,6 +124,38 @@ function renderEpisode(d, back){
           + '</button></li>').join('') + '</ol></nav>';
   }
 
+  // What this episode is, in numbers: who spoke, how fast, and when.
+  const st = d.stats;
+  if (st){
+    const strip = st.strip.split('').map((c, i) =>
+      '<i class="' + (c === 'h' ? 'h' : c === 'g' ? 'g' : 'o') + '" title="'
+      + hms(i * st.slice) + '"></i>').join('');
+    h += '<section class="panel"><h2>This episode</h2>'
+      + '<ul class="figures small">'
+      + '<li class="figure"><b>' + fmt(st.words) + '</b><span>words</span></li>'
+      + '<li class="figure"><b>' + st.mins + '</b><span>minutes</span></li>'
+      + '<li class="figure"><b>' + st.wpm + '</b><span>words a minute</span></li>'
+      + '<li class="figure"><b>' + st.host_share + '%</b><span>spoken by Simon</span></li>'
+      + '</ul>'
+      + '<div class="strip" role="img" aria-label="Who is speaking across the episode">'
+      + strip + '</div>'
+      + '<p class="cap">who is speaking, start to finish — '
+      + '<span class="key h">Simon</span> <span class="key g">guest</span></p>'
+      + '<ul class="rows">' + st.people.map(x =>
+          '<li class="row"><span class="lab">' + esc(x.name) + '</span>'
+          + '<span class="val">' + fmt(x.words) + ' words · ' + x.wpm + ' wpm</span>'
+          + '<span class="track"><i class="fill' + (x.role === 'host' ? '' : ' g')
+          + '" style="width:' + Math.round(x.words / st.words * 100) + '%"></i></span></li>')
+        .join('') + '</ul>';
+    if (d.words && d.words.length){
+      h += '<p class="cap left">Words this episode uses far more than the show usually does</p>'
+        + '<p class="terms">' + d.words.map(w =>
+            '<a href="' + ROOT + '?q=' + encodeURIComponent(w.w) + '">' + esc(w.w)
+            + '<span>' + w.n + '</span></a>').join('') + '</p>';
+    }
+    h += '</section>';
+  }
+
   h += '<div class="tools"><label for="q" class="hidden">Search this episode</label>'
     + '<input type="search" id="q" placeholder="Search this episode" autocomplete="off">'
     + '<p class="count" id="count"></p></div>';

@@ -225,7 +225,9 @@ function wireEpisode(){
   const q = document.getElementById('q'), count = document.getElementById('count');
   const turns = [...document.querySelectorAll('.turn')];
   const originals = turns.map(t => [...t.querySelectorAll('.line p')].map(p => p.textContent));
-  let whole = false;
+  const params = new URLSearchParams(location.search);
+  let whole = params.has('w');
+  if (params.get('q') || params.get('w')) q.value = params.get('q') || params.get('w');
   q.addEventListener('input', (e) => {
     if (e && e.isTrusted) whole = false;
     const term = q.value.trim().toLowerCase();
@@ -270,6 +272,8 @@ function wireEpisode(){
     document.querySelectorAll('.term').forEach(o =>
       o.classList.toggle('on', o === b && q.value !== ''));
   }));
+
+  if (q.value) q.dispatchEvent(new Event('input'));
 
   document.querySelectorAll('.line').forEach(row => {
     const at = row.querySelector('.t');
@@ -351,11 +355,13 @@ function initIndex(){
     return [...set];
   }
 
-  let run = 0;
+  let run = 0, WHOLE = new URLSearchParams(location.search).has('w');
   async function search(){
     const term = q.value.trim();
     const mine = ++run;
-    history.replaceState(null, '', term ? '?q=' + encodeURIComponent(term) : location.pathname);
+    const key_ = WHOLE ? 'w' : 'q';
+    history.replaceState(null, '',
+      term ? '?' + key_ + '=' + encodeURIComponent(term) : location.pathname);
     if (term.length < 2){
       results.innerHTML = ''; grid.style.display = ''; status.textContent = ''; return;
     }
@@ -379,12 +385,13 @@ function initIndex(){
       for (const d of loaded){
       if (!d) continue;
       const key = d.key;
-      const hits = d.l.filter(l => fold(l[2]).includes(needle));
+      const hits = d.l.filter(l => findTerm(fold(l[2]), needle, 0, WHOLE) >= 0);
       if (!hits.length) continue;
       eps++;
       const div = document.createElement('div');
       div.className = 'result';
-      const to = 'e/' + String(key).padStart(3,'0') + '.html?q=' + encodeURIComponent(term);
+      const to = 'e/' + String(key).padStart(3,'0') + '.html?' + key_
+        + '=' + encodeURIComponent(term);
       div.innerHTML = '<h3><a href="' + to + '">'
         + (d.num ? 'Episode ' + d.num + ' · ' : '') + esc(d.guest || ('Episode ' + key))
         + '</a> <span class="more">' + hits.length
@@ -394,7 +401,7 @@ function initIndex(){
         const a = document.createElement('a');
         a.href = to + '#t' + t; a.textContent = hms(t);
         const p = document.createElement('p');
-        const at = fold(text).indexOf(needle);
+        const at = findTerm(fold(text), needle, 0, WHOLE);
         p.append(document.createTextNode((d.who[wi] ? d.who[wi] + ': ' : '') + text.slice(0, at)));
         const m = document.createElement('mark'); m.textContent = text.slice(at, at+term.length);
         p.append(m, document.createTextNode(text.slice(at + term.length)));
@@ -434,8 +441,12 @@ function initIndex(){
   }
 
   let timer;
-  q.addEventListener('input', () => { clearTimeout(timer); timer = setTimeout(search, 180); });
-  const from = new URLSearchParams(location.search).get('q');
+  q.addEventListener('input', (e) => {
+    if (e && e.isTrusted) WHOLE = false;
+    clearTimeout(timer); timer = setTimeout(search, 180);
+  });
+  const params = new URLSearchParams(location.search);
+  const from = params.get('q') || params.get('w');
   if (from){ q.value = from; search(); }
   q.focus();
 }
@@ -444,10 +455,12 @@ async function initEpisode(key){
   const d = await episode(key);
   // Carry the search back with the reader: arriving from a result means "back" should return to
   // that result, not to a list they would have to search again.
-  const term = new URLSearchParams(location.search).get('q');
+  const qs = new URLSearchParams(location.search);
+  const term = qs.get('q') || qs.get('w');
+  const key_ = qs.has('w') ? 'w' : 'q';
   const back = term
     ? {label: '← Back to results for “' + term + '”',
-       href: ROOT + '?q=' + encodeURIComponent(term)}
+       href: ROOT + '?' + key_ + '=' + encodeURIComponent(term)}
     : {label: '← All episodes', href: ROOT};
   document.getElementById('app').innerHTML = renderEpisode(d, back);
   document.title = d.title + ' — My Perfect Console';
@@ -817,7 +830,7 @@ function renderStats(d){
       + ' an episode out from the rest of the archive, ranked by how many separate episodes each'
       + ' one defines. Click to search for it.</p>'
       + '<p class="terms big">' + d.vocab.map(w =>
-          '<a href="' + ROOT + '?q=' + encodeURIComponent(w.w) + '" title="' + fmt(w.said)
+          '<a href="' + ROOT + '?w=' + encodeURIComponent(w.w) + '" title="' + fmt(w.said)
           + ' mentions">' + esc(w.w) + '<span>' + w.n + ' eps</span></a>').join('') + '</p>';
   }
 
@@ -839,7 +852,7 @@ function renderStats(d){
       + ' and they land on the same two or three. It\u2019s happened '
       + p.guest_pairs.length + ' times.</p>'
       + '<ul class="rows quotes">' + p.guest_pairs.slice(0, 6).map(g =>
-          '<li class="quote"><a href="' + ROOT + '?q=' + encodeURIComponent(g.shared[0]) + '">'
+          '<li class="quote"><a href="' + ROOT + '?w=' + encodeURIComponent(g.shared[0]) + '">'
           + esc(g.a) + ' &amp; ' + esc(g.b) + '</a><p>' + esc(g.shared.join(', ')) + '</p></li>')
         .join('') + '</ul>';
   }

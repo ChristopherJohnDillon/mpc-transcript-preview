@@ -104,30 +104,6 @@ function renderEpisode(d, back){
     + '</p>'
     + '</div></header><main class="wrap">';
 
-  h += '<section class="console"><h2>The console</h2>'
-    + '<p class="name">' + esc(d.console || 'Unnamed') + '</p>';
-  for (const p of d.picks){
-    const w = Math.max(4, Math.round(p.mins / longest * 100));
-    h += '<div class="slot"><span class="n">' + esc(p.n) + '</span>'
-      + '<span class="title">' + esc(p.t) + '</span>'
-      + '<span class="mins">' + Math.round(p.mins) + ' min</span>'
-      + '<button class="open" data-go="t' + nearest(p.at) + '">Open</button>'
-      + '<span class="bar" style="width:' + w + '%"></span></div>';
-  }
-  h += '<p class="foot">The five picks, and how long each one got. Open any of them to jump to'
-    + ' where it comes up.</p></section>';
-
-  // The console covers the five picks. The rest of the hour - the introduction, the naming of
-  // the console, the sign-off - had no way in at all until now.
-  if (d.ch && d.ch.length > 1){
-    h += '<nav class="chapters"><h2>Chapters</h2><ol>'
-      + d.ch.map(c => '<li><button class="jump" data-go="t' + nearest(c[0]) + '">'
-          + '<span class="at">' + hms(c[0]) + '</span>'
-          + '<span class="what">' + esc(c[3] || c[2]) + '</span>'
-          + '<span class="len">' + Math.round((c[1] - c[0]) / 60) + ' min</span>'
-          + '</button></li>').join('') + '</ol></nav>';
-  }
-
   // What this episode is, in numbers: who spoke, how fast, and when.
   const st = d.stats;
   if (st){
@@ -147,9 +123,15 @@ function renderEpisode(d, back){
       + '<span class="key h">Simon</span> <span class="key g">guest</span></p>'
       + '<ul class="rows">' + st.people.map(x =>
           '<li class="row"><span class="lab">' + esc(x.name) + '</span>'
-          + '<span class="val">' + fmt(x.words) + ' words · ' + x.wpm + ' wpm</span>'
+          + '<span class="val">' + x.share + '% · ' + fmt(x.words) + ' words · '
+          + x.mins + ' min · ' + x.wpm + ' wpm</span>'
           + '<span class="track"><i class="fill' + (x.role === 'host' ? '' : ' g')
-          + '" style="width:' + Math.round(x.words / st.words * 100) + '%"></i></span></li>')
+          + '" style="width:' + x.share + '%"></i></span></li>')
+        .join('') + '</ul>'
+      + '<ul class="rows sub">' + st.people.map(x =>
+          '<li class="row"><span class="lab">' + esc(x.name.split(' ')[0]) + '</span>'
+          + '<span class="val">' + fmt(x.turns) + ' turns · longest '
+          + fmt(x.longest) + ' words · ' + fmt(x.questions) + ' questions</span></li>')
         .join('') + '</ul>';
     if (d.words && d.words.length){
       h += '<p class="cap left">Words this episode uses more than the show normally does</p>'
@@ -158,6 +140,34 @@ function renderEpisode(d, back){
             + '<span>' + w.n + '</span></a>').join('') + '</p>';
     }
     h += '</section>';
+  }
+
+  h += '<section class="console"><h2>The console</h2>'
+    + '<p class="name">' + esc(d.console || 'Unnamed') + '</p>';
+  for (const p of d.picks){
+    const w = Math.max(4, Math.round(p.mins / longest * 100));
+    h += '<div class="slot"><span class="n">' + esc(p.n) + '</span>'
+      + '<span class="title">' + esc(p.t) + '</span>'
+      + '<span class="mins">' + Math.round(p.mins) + ' min</span>'
+      + '<button class="open" data-go="t' + nearest(p.at) + '">Open</button>'
+      + '<span class="bar" style="width:' + w + '%"></span></div>';
+  }
+  h += '<p class="foot">The five picks, and how long each one got. Open any of them to jump to'
+    + ' where it comes up.</p></section>';
+
+  // The console covers the five picks. The rest of the hour - the introduction, the naming of
+  // the console, the sign-off - had no way in at all until now.
+  // The console already lists the five picks with their minutes and an Open button, so a full
+  // chapter list repeats all of it. Only the sections the console does NOT cover belong here:
+  // the introduction, the naming of the console, and the sign-off.
+  const rest = (d.ch || []).filter(c => c[2] !== 'pick');
+  if (rest.length){
+    h += '<nav class="chapters"><h2>Elsewhere in the episode</h2><ol>'
+      + rest.map(c => '<li><button class="jump" data-go="t' + nearest(c[0]) + '">'
+          + '<span class="at">' + hms(c[0]) + '</span>'
+          + '<span class="what">' + esc(c[3] || c[2]) + '</span>'
+          + '<span class="len">' + Math.round((c[1] - c[0]) / 60) + ' min</span>'
+          + '</button></li>').join('') + '</ol></nav>';
   }
 
   h += '<div class="tools"><label for="q" class="hidden">Search this episode</label>'
@@ -763,6 +773,16 @@ function renderStats(d){
       + rowList(g.players_liked.map(x => ({lab: x.t,
           val: 'players ' + x.user + ' · critics ' + x.critic, n: x.user - x.critic})),
         Math.max(...g.players_liked.map(x => x.user - x.critic)), 'g');
+  }
+
+  // --- the show's own vocabulary
+  if (d.vocab && d.vocab.length){
+    h += '<h2>What the show talks about</h2>'
+      + '<p class="note">The words that come up most across ' + fmt(t.words) + ' of them, with'
+      + ' the machinery of English taken out. Each one searches the archive.</p>'
+      + '<p class="terms big">' + d.vocab.map(w =>
+          '<a href="' + ROOT + '?q=' + encodeURIComponent(w.w) + '">' + esc(w.w)
+          + '<span>' + fmt(w.n) + '</span></a>').join('') + '</p>';
   }
 
   h += '<h2>What they call the thing</h2>'

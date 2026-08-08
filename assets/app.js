@@ -647,9 +647,11 @@ function renderStats(d){
 
   // --- who talks
   h += '<h2>Simon and the guest</h2>'
-    + '<p class="note">Simon speaks about ' + t.host_share + '% of the words. He\u2019s the one'
-    + ' asking the questions, so that sounds about right \u2014 but it swings a long way'
-    + ' depending on who\u2019s in the chair.</p>'
+    + '<p class="note">Simon speaks about ' + t.host_share + '% of the words while the guest is'
+    + ' there. His sign-off is recorded alone after they\u2019ve gone, so it doesn\u2019t count'
+    + ' \u2014 leaving it in put him eight points higher. He\u2019s the one asking the questions,'
+    + ' so a fifth sounds about right, but it swings a long way depending on who\u2019s in the'
+    + ' chair.</p>'
     + '<div class="split"><i class="h" style="width:' + t.host_share + '%"></i>'
     + '<i class="g" style="width:' + (100 - t.host_share) + '%"></i></div>'
     + '<p class="splitkey"><span class="h"><b>Simon</b> ' + t.host_share + '%</span>'
@@ -790,12 +792,14 @@ function renderStats(d){
 
   // --- the show's own vocabulary
   if (d.vocab && d.vocab.length){
-    h += '<h2>What the show talks about</h2>'
-      + '<p class="note">The words that come up most across ' + fmt(t.words) + ' of them, with'
-      + ' the machinery of English taken out. Each one searches the archive.</p>'
+    h += '<h2>What it keeps coming back to</h2>'
+      + '<p class="note">Not the commonest words \u2014 those are <em>because</em>, <em>some</em>,'
+      + ' <em>where</em>, in this and in every other English corpus. These are the words that mark'
+      + ' an episode out from the rest of the archive, ranked by how many separate episodes each'
+      + ' one defines. Click to search for it.</p>'
       + '<p class="terms big">' + d.vocab.map(w =>
-          '<a href="' + ROOT + '?q=' + encodeURIComponent(w.w) + '">' + esc(w.w)
-          + '<span>' + fmt(w.n) + '</span></a>').join('') + '</p>';
+          '<a href="' + ROOT + '?q=' + encodeURIComponent(w.w) + '" title="' + fmt(w.said)
+          + ' mentions">' + esc(w.w) + '<span>' + w.n + ' eps</span></a>').join('') + '</p>';
   }
 
   h += '<h2>What they call the thing</h2>'

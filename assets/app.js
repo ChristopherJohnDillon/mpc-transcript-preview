@@ -95,7 +95,9 @@ function renderEpisode(d, back){
     + (d.num ? ' · Episode ' + d.num : '') + '</p>'
     + '<h1>' + esc(d.title) + '</h1>'
     + '<p class="byline">With <b>' + esc(d.guest) + '</b>'
-    + (d.date ? ' · ' + esc(d.date) : '') + ' · ' + d.mins + ' minutes</p>'
+    + (d.date ? ' · ' + esc(d.date) : '') + ' · ' + d.mins + ' minutes'
+    + (d.listen ? ' · <a class="listen" href="' + d.listen + '" target="_blank" rel="noopener">Listen &#8599;</a>' : '')
+    + '</p>'
     + '</div></header><main class="wrap">';
 
   h += '<section class="console"><h2>The console</h2>'

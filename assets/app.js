@@ -853,9 +853,15 @@ function renderStats(d){
   h += '<h2>What they call the thing</h2>'
     + '<p class="note">Every guest has to name their imaginary console. Most keep it to two or'
     + ' three words. Some really don\u2019t.</p>'
+    // c.key is the transcript's own key. c.n is the spreadsheet's episode column, which
+    // disagrees with the feed for most of the corpus - linking on it sent 128 of 166 guests to
+    // somebody else's episode. Guests with no published transcript are not linked at all.
     + '<ul class="rows quotes">' + p.weirdest.slice(0, 8).map(c =>
-        '<li class="quote"><a href="' + ROOT + 'e/' + String(c.n).padStart(3,'0') + '.html">'
-        + esc(c.guest) + '</a><p>' + esc(c.name) + '</p></li>').join('') + '</ul>'
+        '<li class="quote">' + (c.key
+            ? '<a href="' + ROOT + 'e/' + String(c.key).padStart(3,'0') + '.html">'
+              + esc(c.guest) + '</a>'
+            : '<span>' + esc(c.guest) + '</span>')
+        + '<p>' + esc(c.name) + '</p></li>').join('') + '</ul>'
     + rowList(p.console_word_dist.map(x => ({
         lab: x.words + (x.words === 1 ? ' word' : ' words'),
         val: x.n + (x.n === 1 ? ' console' : ' consoles'), n: x.n})),

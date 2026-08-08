@@ -152,24 +152,20 @@ function renderEpisode(d, back){
       + '<button class="open" data-go="t' + nearest(p.at) + '">Open</button>'
       + '<span class="bar" style="width:' + w + '%"></span></div>';
   }
-  h += '<p class="foot">The five picks, and how long each one got. Open any of them to jump to'
-    + ' where it comes up.</p></section>';
+  // the console is the whole contents list: five picks, then naming the machine, then the
+  // sign-off. A separate chapter box repeated it.
+  const after = (d.ch || []).filter(c => c[2] === 'wrap' || c[2] === 'outro');
+  for (const c of after){
+    h += '<div class="slot plain"><span class="n"></span>'
+      + '<span class="title">' + esc(c[3] || c[2]) + '</span>'
+      + '<span class="mins">' + Math.round((c[1] - c[0]) / 60) + ' min</span>'
+      + '<button class="open" data-go="t' + nearest(c[0]) + '">Open</button></div>';
+  }
+  h += '<p class="foot">The five picks and how long each one got, then the console gets its name.'
+    + ' Open any of them to jump there.</p></section>';
 
   // The console covers the five picks. The rest of the hour - the introduction, the naming of
   // the console, the sign-off - had no way in at all until now.
-  // The console already lists the five picks with their minutes and an Open button, so a full
-  // chapter list repeats all of it. Only the sections the console does NOT cover belong here:
-  // the introduction, the naming of the console, and the sign-off.
-  const rest = (d.ch || []).filter(c => c[2] !== 'pick');
-  if (rest.length){
-    h += '<nav class="chapters"><h2>Elsewhere in the episode</h2><ol>'
-      + rest.map(c => '<li><button class="jump" data-go="t' + nearest(c[0]) + '">'
-          + '<span class="at">' + hms(c[0]) + '</span>'
-          + '<span class="what">' + esc(c[3] || c[2]) + '</span>'
-          + '<span class="len">' + Math.round((c[1] - c[0]) / 60) + ' min</span>'
-          + '</button></li>').join('') + '</ol></nav>';
-  }
-
   h += '<div class="tools"><label for="q" class="hidden">Search this episode</label>'
     + '<input type="search" id="q" placeholder="Search this episode" autocomplete="off">'
     + '<p class="count" id="count"></p></div>';

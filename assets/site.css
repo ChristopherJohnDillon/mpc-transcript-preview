@@ -194,7 +194,7 @@ footer p{margin:0 0 .4rem}
 .loading{color:var(--faint); padding:4rem 0; text-align:center}
 
 /* ---------------------------------------------------------------- statistics */
-.nav{display:flex; gap:.6rem; margin:0 0 1.5rem}
+.nav{display:flex; gap:.6rem; margin:0 0 1.5rem; padding:0 1.25rem}
 .nav a{
   font-size:.78rem; font-weight:600; text-decoration:none; color:var(--text);
   background:var(--raise); border:2px solid var(--line); border-radius:2rem; padding:.3rem .95rem;

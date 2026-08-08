@@ -512,8 +512,9 @@ function chart(points, opt){
   }
   s += '<g fill="' + opt.colour + '" fill-opacity=".45">';
   points.forEach((p, i) => {
-    s += '<circle cx="' + x(i).toFixed(1) + '" cy="' + y(p.v).toFixed(1) + '" r="2.6">'
-       + '<title>' + esc(p.t) + '</title></circle>';
+    s += '<circle class="pt" cx="' + x(i).toFixed(1) + '" cy="' + y(p.v).toFixed(1) + '" r="3.4"'
+       + (p.k ? ' data-k="' + p.k + '"' : '')
+       + ' data-label="' + esc(p.t) + '"></circle>';
   });
   s += '</g>';
   // rolling mean, wide enough to be a trend rather than an echo of the scatter
@@ -560,6 +561,34 @@ function columns(bins, opt){
        + ' font-size="11" fill="rgba(255,255,255,.45)">' + esc(b.tick) + '</text>';
   });
   return s + '</svg>';
+}
+
+// A dot is an episode, so it should behave like one: say which on hover, open it on click.
+function wirePoints(root){
+  let tip = document.getElementById('tip');
+  if (!tip){
+    tip = document.createElement('div');
+    tip.id = 'tip'; tip.className = 'tip'; tip.hidden = true;
+    document.body.append(tip);
+  }
+  root.querySelectorAll('circle.pt').forEach(c => {
+    const show = e => {
+      tip.textContent = c.dataset.label + (c.dataset.k ? ' — open transcript' : '');
+      tip.hidden = false;
+      const pad = 12;
+      tip.style.left = Math.min(e.clientX + pad, innerWidth - tip.offsetWidth - pad) + 'px';
+      tip.style.top = (e.clientY + pad) + 'px';
+    };
+    c.addEventListener('mouseenter', show);
+    c.addEventListener('mousemove', show);
+    c.addEventListener('mouseleave', () => tip.hidden = true);
+    if (c.dataset.k){
+      c.style.cursor = 'pointer';
+      c.addEventListener('click', () => {
+        location.href = ROOT + 'e/' + String(c.dataset.k).padStart(3, '0') + '.html';
+      });
+    }
+  });
 }
 
 function renderStats(d){
@@ -624,19 +653,30 @@ function renderStats(d){
     + '<p class="cap">minutes · one column per ten-minute band</p>';
 
   const series = t.series;
+  const gr = t.growth;
   h += '<h2>Is the show getting longer?</h2>'
-    + '<p class="note">Every episode as a dot, in broadcast order, with an eleven-episode rolling'
-    + ' mean through it.</p>'
-    + chart(series.map(x => ({v: x.m, x: x.d.slice(0,7),
-                              t: x.g + ' — ' + Math.round(x.m) + ' min'})),
+    + '<p class="note">' + (gr
+        ? 'Yes, and not subtly. The first ' + gr.n + ' episodes average <b>' + gr.first
+          + ' minutes</b> and the last ' + gr.n + ' average <b>' + gr.last + '</b>. The words rise'
+          + ' with the minutes — ' + fmt(gr.words_first) + ' to ' + fmt(gr.words_last)
+          + ' an episode — so it is more conversation, not slower conversation.'
+        : 'Every episode as a dot, in broadcast order.')
+    + ' Hover a dot for the episode; click to read it.</p>'
+    + (gr ? rowList(gr.years.map(y => ({lab: y.y, val: y.mins + ' min · ' + y.n + ' episodes',
+                                        n: y.mins})),
+                    Math.max(...gr.years.map(y => y.mins)), 'g') : '')
+    + chart(series.map(x => ({v: x.m, x: x.d.slice(0,7), k: x.k,
+                              t: 'Ep ' + (x.n || x.k) + ' · ' + x.g + ' · '
+                                 + Math.round(x.m) + ' min · ' + x.d})),
             {colour:'#f3b1b2', step: 20, unit:'m', label:'Episode length over time',
              foot:'episode length, minutes'});
 
   h += '<h2>Does Simon talk more or less over time?</h2>'
     + '<p class="note">His share of the words in each episode. The scatter is wide because the'
     + ' guest decides it, but the trend is the show finding its shape.</p>'
-    + chart(series.filter(x => x.s != null).map(x => ({v: x.s, x: x.d.slice(0,7),
-                              t: x.g + ' — Simon ' + x.s + '%'})),
+    + chart(series.filter(x => x.s != null).map(x => ({v: x.s, x: x.d.slice(0,7), k: x.k,
+                              t: 'Ep ' + (x.n || x.k) + ' · ' + x.g + ' · Simon '
+                                 + x.s + '% · ' + x.d})),
             {colour:'#7fd0c1', step: 10, unit:'%', zero: true,
              label:'Host share over time', foot:"Simon's share of the words"});
   const len = e => ({lab: e.guest || ('Episode ' + e.key), val: Math.round(e.mins) + ' min',
@@ -754,6 +794,7 @@ function renderStats(d){
      + ' labelling, so they carry those errors. The picks are the show\'s own.</p></footer>';
 
   document.getElementById('app').innerHTML = h;
+  wirePoints(document.getElementById('app'));
   drawNet(d.network, document.getElementById('netnote'));
 
 }

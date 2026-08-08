@@ -136,8 +136,8 @@ function renderEpisode(d, back){
     if (d.words && d.words.length){
       h += '<p class="cap left">Words this episode uses more than the show normally does</p>'
         + '<p class="terms">' + d.words.map(w =>
-            '<a href="' + ROOT + '?q=' + encodeURIComponent(w.w) + '">' + esc(w.w)
-            + '<span>' + w.n + '</span></a>').join('') + '</p>';
+            '<button class="term" data-w="' + esc(w.w) + '">' + esc(w.w)
+            + '<span>' + w.n + '</span></button>').join('') + '</p>';
     }
     h += '</section>';
   }
@@ -239,6 +239,19 @@ function wireEpisode(){
     count.textContent = term ? (hits ? hits + ' mention' + (hits==1?'':'s') : 'nothing found') : '';
   });
   // Every line already has an id; nothing said so. Clicking the time copies a link to it.
+  // Clicking a word searches this episode rather than throwing the reader out to the archive.
+  // It also makes the number honest: the chip counts occurrences, and so does this search, while
+  // the corpus search counts matching lines - which is why "b-squad" said 4 times reported 3.
+  document.querySelectorAll('.term').forEach(b => b.addEventListener('click', () => {
+    const q = document.getElementById('q');
+    if (!q) return;
+    q.value = q.value.trim().toLowerCase() === b.dataset.w ? '' : b.dataset.w;
+    q.dispatchEvent(new Event('input'));
+    q.scrollIntoView({behavior: 'smooth', block: 'center'});
+    document.querySelectorAll('.term').forEach(o =>
+      o.classList.toggle('on', o === b && q.value !== ''));
+  }));
+
   document.querySelectorAll('.line').forEach(row => {
     const at = row.querySelector('.t');
     if (!at) return;

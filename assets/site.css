@@ -267,11 +267,13 @@ footer p{margin:0 0 .4rem}
 .cap.left{text-align:left; margin-top:1.1rem}
 .key{font-weight:600} .key.h{color:var(--salmon)} .key.g{color:var(--guest)}
 .terms{display:flex; flex-wrap:wrap; gap:.4rem; margin:.4rem 0 0}
-.terms a{display:inline-flex; align-items:baseline; gap:.35rem; text-decoration:none;
-  border:1px solid var(--line); border-radius:2rem; padding:.2rem .7rem; font-size:.85rem;
-  color:var(--text)}
-.terms a:hover{border-color:var(--salmon); color:var(--salmon)}
-.terms a span{color:var(--faint); font-size:.72rem; font-variant-numeric:tabular-nums}
+.terms a,.terms .term{display:inline-flex; align-items:baseline; gap:.35rem;
+  text-decoration:none; border:1px solid var(--line); border-radius:2rem; padding:.2rem .7rem;
+  font-size:.85rem; color:var(--text); background:none; font-family:inherit; cursor:pointer}
+.terms a:hover,.terms .term:hover{border-color:var(--salmon); color:var(--salmon)}
+.terms .term.on{border-color:var(--salmon); background:var(--raise); color:var(--salmon)}
+.terms a span,.terms .term span{color:var(--faint); font-size:.72rem;
+  font-variant-numeric:tabular-nums}
 .terms.big a{font-size:.95rem; padding:.3rem .85rem}
 .rows.sub{margin:.5rem 0 0}
 .rows.sub .row{padding:.2rem 0; font-size:.82rem; color:var(--faint)}

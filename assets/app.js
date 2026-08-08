@@ -202,11 +202,32 @@ function renderEpisode(d, back){
     + '<a href="' + ROOT + 'method.html">How this was made</a>.</p></footer>';
 }
 
+// A chip and a typed query want different matching. Someone typing "eno" is part-way through a
+// word and should see "enough"; the chip means the word eno, and highlighting it inside "enough"
+// and "phenomenon" made the count disagree with the number printed on the chip. So a chip search
+// is whole-word and a typed one is not. Native input events are trusted, the chip's dispatched
+// one is not, which is how the flag knows to clear itself.
+const INWORD = /[a-z0-9À-ɏ'’]/i;
+
+function findTerm(hay, term, from, whole){
+  let at = hay.indexOf(term, from);
+  if (!whole) return at;
+  while (at >= 0){
+    const before = at > 0 ? hay[at-1] : '';
+    const after = hay[at+term.length] || '';
+    if (!INWORD.test(before) && !INWORD.test(after)) return at;
+    at = hay.indexOf(term, at + 1);
+  }
+  return -1;
+}
+
 function wireEpisode(){
   const q = document.getElementById('q'), count = document.getElementById('count');
   const turns = [...document.querySelectorAll('.turn')];
   const originals = turns.map(t => [...t.querySelectorAll('.line p')].map(p => p.textContent));
-  q.addEventListener('input', () => {
+  let whole = false;
+  q.addEventListener('input', (e) => {
+    if (e && e.isTrusted) whole = false;
     const term = q.value.trim().toLowerCase();
     let hits = 0;
     turns.forEach((turn, i) => {
@@ -214,7 +235,8 @@ function wireEpisode(){
       [...turn.querySelectorAll('.line p')].forEach((p, j) => {
         const text = originals[i][j];
         if (!term){ p.textContent = text; return; }
-        let at = text.toLowerCase().indexOf(term);
+        const hay = text.toLowerCase();
+        let at = findTerm(hay, term, 0, whole);
         if (at < 0){ p.textContent = text; return; }
         any = true;
         p.textContent = '';
@@ -225,7 +247,7 @@ function wireEpisode(){
           const m = document.createElement('mark'); m.textContent = text.slice(at, at+term.length);
           p.append(m);
           from = at + term.length;
-          at = text.toLowerCase().indexOf(term, from);
+          at = findTerm(hay, term, from, whole);
         }
         p.append(document.createTextNode(text.slice(from)));
       });
@@ -242,6 +264,7 @@ function wireEpisode(){
     const q = document.getElementById('q');
     if (!q) return;
     q.value = q.value.trim().toLowerCase() === b.dataset.w ? '' : b.dataset.w;
+    whole = true;
     q.dispatchEvent(new Event('input'));
     q.scrollIntoView({behavior: 'smooth', block: 'center'});
     document.querySelectorAll('.term').forEach(o =>

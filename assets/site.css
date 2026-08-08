@@ -293,6 +293,10 @@ footer p{margin:0 0 .4rem}
   background:var(--raise); border:2px solid var(--line); border-radius:2rem; padding:.4rem 1rem}
 .step:hover{border-color:var(--salmon); color:var(--salmon)}
 .step.off{opacity:.35; border-style:dashed}
+.made{color:var(--faint); font-size:.8rem}
+.made a{color:var(--salmon); text-decoration:none; font-weight:600}
+.made a:hover{text-decoration:underline}
+.nav{padding-top:1.25rem}
 .listen{color:var(--salmon); text-decoration:none; font-weight:600; white-space:nowrap}
 .listen:hover{text-decoration:underline}
 .filter{display:flex; align-items:center; gap:.8rem; margin:0 0 1rem}

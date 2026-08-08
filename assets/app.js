@@ -170,8 +170,23 @@ function renderEpisode(d, back){
     + '<input type="search" id="q" placeholder="Search this episode" autocomplete="off">'
     + '<p class="count" id="count"></p></div>';
 
-  let ci = 0, last = null, out = '';
+  // Markers are the show's own audio: a bar of music, a clip being played. They are placed by
+  // time alongside the lines rather than inside a turn, because they belong to nobody.
+  let ci = 0, mi = 0, last = null, out = '';
+  const marks = d.m || [];
+  const runMarks = (upto) => {
+    while (mi < marks.length && marks[mi][0] <= upto){
+      const [at, len, kind] = marks[mi++];
+      if (last !== null){ out += '</div>'; last = null; }
+      const label = kind === 'music' ? 'Music' : 'Clip played';
+      out += '<div class="aside ' + kind + '" id="t' + at + '">'
+        + '<span class="t">' + hms(at) + '</span>'
+        + '<p><span class="glyph">' + (kind === 'music' ? '\u266a' : '\u25b6') + '</span> '
+        + label + ' · ' + (len >= 60 ? Math.round(len/60) + ' min' : len + ' sec') + '</p></div>';
+    }
+  };
   for (const [t, wi, text] of d.l){
+    runMarks(t);
     while (ci < d.ch.length && d.ch[ci][0] <= t){
       const c = d.ch[ci++];
       if (last !== null){ out += '</div>'; last = null; }
@@ -188,6 +203,7 @@ function renderEpisode(d, back){
     out += '<div class="line" id="t' + t + '"><span class="t">' + hms(t) + '</span><p>'
       + esc(text) + '</p></div>';
   }
+  runMarks(Infinity);
   if (last !== null) out += '</div>';
   const near = d.around || {};
   const step = (k, label) => k

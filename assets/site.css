@@ -160,43 +160,45 @@ footer p{margin:0 0 .4rem}
 
 /* --- the episode page, in the shape the show's own site uses: the guest first ------------- */
 header.ep{padding-top:1.5rem}
-.hero{display:flex; gap:2rem; align-items:flex-start; flex-wrap:wrap}
-.hero .shot{flex:0 0 13rem; max-width:13rem}
-.hero .shot img{width:100%; height:auto; display:block; border:3px solid #fff;
+.hero{display:flex; gap:2.2rem; align-items:flex-start; flex-wrap:wrap}
+/* left rail: the guest's photograph, the machine they invented, and the five games. Keeping the
+   games here rather than in a band underneath is what stops the biography pushing them off the
+   screen - they are the point of the episode and they should not need scrolling to reach. */
+.side{flex:0 0 16rem; max-width:16rem}
+.side .shot img{width:100%; height:auto; display:block; border:3px solid #fff;
   box-shadow:0 8px 30px rgba(0,0,0,.45)}
-.hero .who{flex:1 1 22rem; min-width:16rem}
-.hero h1{margin:.2rem 0 .1rem; color:var(--pink); font-size:clamp(1.7rem,4vw,2.5rem)}
-.hero .role{margin:0 0 1rem; text-transform:uppercase; letter-spacing:.09em;
+.side .eyebrow{margin:1.1rem 0 0; text-transform:uppercase; letter-spacing:.12em;
+  font-size:.68rem; font-weight:700; color:var(--dim)}
+.side .cname{margin:.15rem 0 .7rem; color:var(--pink); font-size:1.15rem; line-height:1.25}
+.covers{display:grid; grid-template-columns:repeat(5,1fr); gap:.3rem; list-style:none;
+  margin:0; padding:0}
+.cover{position:relative; aspect-ratio:3/4; border:1px solid var(--line); border-radius:.25rem;
+  overflow:hidden; cursor:pointer; background:rgba(0,0,0,.35)}
+.cover img{position:absolute; inset:0; width:100%; height:100%; object-fit:cover; opacity:.85}
+.cover:hover{border-color:var(--pink)}
+.cover:hover img{opacity:1}
+.cover:hover .cap{opacity:1}
+.cover .cap{position:absolute; inset:0; z-index:1; display:flex; align-items:flex-end;
+  padding:.3rem; font-size:.6rem; line-height:1.2; opacity:0; transition:opacity .15s;
+  background:linear-gradient(transparent,rgba(0,0,0,.92) 55%)}
+.cover .cap b{color:var(--pink); margin-right:.2rem}
+.cover.nocover .cap{opacity:1; background:none; align-items:center; justify-content:center;
+  text-align:center}
+
+/* right: who they are */
+.bill{flex:1 1 22rem; min-width:16rem}
+.bill h1{margin:.2rem 0 .1rem; color:var(--pink); font-size:clamp(1.7rem,4vw,2.5rem)}
+.bill .role{margin:0 0 1rem; text-transform:uppercase; letter-spacing:.09em;
   font-size:.78rem; font-weight:700; color:var(--fg)}
-.hero .meta{margin:.7rem 0 0; color:var(--dim); font-size:.85rem}
+.bill .meta{margin:.7rem 0 0; color:var(--dim); font-size:.85rem}
 .btn{display:inline-flex; align-items:center; gap:.5rem; padding:.6rem 1.15rem;
   border:2px solid var(--line); border-radius:2rem; background:rgba(0,0,0,.3);
   color:inherit; text-decoration:none; font-size:.9rem}
 .btn:hover{border-color:var(--pink); color:var(--pink)}
-.hero .bio{margin:1.1rem 0 0; padding-top:1.1rem; border-top:1px solid var(--line);
+.bill .bio{margin:1.1rem 0 0; padding-top:1.1rem; border-top:1px solid var(--line);
   color:var(--dim); max-width:34rem}
-.hero .bio p{margin:0 0 .7rem; line-height:1.55}
-
-/* the five picks as the show shows them: cover art, in release order, under the console name */
-.perfect{margin:2.5rem 0 2rem; text-align:center}
-.perfect .eyebrow{margin:0; text-transform:uppercase; letter-spacing:.12em; font-size:.72rem;
-  font-weight:700; color:var(--dim)}
-.perfect .cname{margin:.2rem 0 1.3rem; color:var(--pink); font-size:clamp(1.2rem,3vw,1.7rem)}
-.covers{display:grid; grid-template-columns:repeat(auto-fit,minmax(9rem,1fr)); gap:.8rem;
-  list-style:none; margin:0; padding:0}
-.cover{position:relative; border:2px solid var(--line); border-radius:.5rem; overflow:hidden;
-  cursor:pointer; background:rgba(0,0,0,.35); min-height:11rem; display:flex;
-  align-items:flex-end; text-align:left}
-.cover img{position:absolute; inset:0; width:100%; height:100%; object-fit:cover; opacity:.85}
-.cover:hover{border-color:var(--pink)}
-.cover:hover img{opacity:1}
-.cover .cap{position:relative; z-index:1; padding:.5rem .6rem; font-size:.8rem; line-height:1.3;
-  background:linear-gradient(transparent,rgba(0,0,0,.88) 45%); width:100%}
-.cover .cap b{color:var(--pink)}
-.cover .mins{position:absolute; top:.4rem; right:.5rem; z-index:1; font-size:.7rem;
-  color:var(--dim); background:rgba(0,0,0,.7); padding:.15rem .4rem; border-radius:.3rem}
-.cover.nocover{align-items:center; justify-content:center}
-.cover.nocover .cap{background:none; text-align:center}
+.bill .bio p{margin:0 0 .7rem; line-height:1.55}
+@media (max-width:640px){.side{flex:1 1 100%; max-width:22rem}}
 
 /* the archive index, on top of the episode styles both pages share */
 .lede{color:var(--dim); max-width:38rem; margin:0 0 2rem}

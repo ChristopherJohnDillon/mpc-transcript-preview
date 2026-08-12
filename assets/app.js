@@ -108,31 +108,26 @@ function renderEpisode(d, back){
     + '<a href="' + ROOT + 'stats.html">Numbers</a>'
     + '<a href="' + ROOT + 'method.html">How</a></nav>'
     + '<header class="ep"><div class="wrap hero">'
+    + '<div class="side">'
     + (d.art ? '<div class="shot"><img src="' + d.art + '" alt="" loading="lazy"></div>' : '')
-    + '<div class="who">'
+    + '<p class="eyebrow">Perfect console:</p>'
+    + '<h2 class="cname">' + esc(d.console || '\u2014 never named \u2014') + '</h2>'
+    + '<ul class="covers">' + d.picks.map(p =>
+        '<li class="cover' + (p.cover ? '' : ' nocover') + '" data-go="t' + nearest(p.at) + '"'
+        + ' title="' + esc(p.t) + ' \u2014 jump to it">'
+        + (p.cover ? '<img src="' + p.cover + '" alt="" loading="lazy">' : '')
+        + '<span class="cap"><b>' + esc(p.n) + '</b> ' + esc(p.t) + '</span></li>').join('')
+    + '</ul></div>'
+    + '<div class="bill">'
     + '<a class="back" href="' + back.href + '">' + esc(back.label) + '</a>'
     + '<h1>' + esc(d.guest || d.title) + '</h1>'
     + (d.role ? '<p class="role">' + esc(d.role) + '</p>' : '')
     + (d.listen ? '<a class="listen btn" href="' + d.listen + '" target="_blank"'
         + ' rel="noopener">Listen to the podcast</a>' : '')
-    + '<p class="meta">' + (d.num ? 'Episode ' + d.num + ' · ' : '')
-    + (d.date ? esc(d.date) + ' · ' : '') + d.mins + ' minutes</p>'
+    + '<p class="meta">' + (d.num ? 'Episode ' + d.num + ' \u00b7 ' : '')
+    + (d.date ? esc(d.date) + ' \u00b7 ' : '') + d.mins + ' minutes</p>'
     + (d.bio ? '<div class="bio"><p>' + esc(d.bio).replace(/\n+/g, '</p><p>') + '</p></div>' : '')
     + '</div></div></header><main class="wrap">';
-
-  // The console and its five games, as the show presents them: cover art in release order, the
-  // machine named above. Clicking a cover jumps to where that game is discussed, which is the one
-  // thing this archive can do that the show's own page cannot.
-  h += '<section class="perfect">'
-    + '<p class="eyebrow">Perfect console:</p>'
-    + '<h2 class="cname">' + esc(d.console || 'Unnamed') + '</h2>'
-    + '<ul class="covers">' + d.picks.map(p =>
-        '<li class="cover' + (p.cover ? '' : ' nocover') + '" data-go="t' + nearest(p.at) + '"'
-        + ' title="' + esc(p.t) + ' — jump to it">'
-        + (p.cover ? '<img src="' + p.cover + '" alt="" loading="lazy">' : '')
-        + '<span class="cap"><b>' + esc(p.n) + '</b> ' + esc(p.t) + '</span>'
-        + '<span class="mins">' + Math.round(p.mins) + ' min</span></li>').join('')
-    + '</ul></section>';
 
   // What this episode is, in numbers: who spoke, how fast, and when.
   const st = d.stats;

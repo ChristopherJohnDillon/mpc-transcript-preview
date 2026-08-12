@@ -164,26 +164,33 @@ header.ep{padding-top:1.5rem}
 /* left rail: the guest's photograph, the machine they invented, and the five games. Keeping the
    games here rather than in a band underneath is what stops the biography pushing them off the
    screen - they are the point of the episode and they should not need scrolling to reach. */
-.side{flex:0 0 16rem; max-width:16rem}
+.side{flex:0 0 19rem; max-width:19rem}
 .side .shot img{width:100%; height:auto; display:block; border:3px solid #fff;
   box-shadow:0 8px 30px rgba(0,0,0,.45)}
 .side .eyebrow{margin:1.1rem 0 0; text-transform:uppercase; letter-spacing:.12em;
   font-size:.68rem; font-weight:700; color:var(--dim)}
-.side .cname{margin:.15rem 0 .7rem; color:var(--pink); font-size:1.15rem; line-height:1.25}
-.covers{display:grid; grid-template-columns:repeat(5,1fr); gap:.3rem; list-style:none;
+.side .cname{margin:.15rem 0 .8rem; color:var(--pink); font-size:1.15rem; line-height:1.25}
+/* three across rather than five: at five in a 16rem rail a cover was 3rem wide and unreadable,
+   and these are the point of the episode. Two rows of three is bigger and still above the fold. */
+.covers{display:grid; grid-template-columns:repeat(3,1fr); gap:.45rem; list-style:none;
   margin:0; padding:0}
-.cover{position:relative; aspect-ratio:3/4; border:1px solid var(--line); border-radius:.25rem;
-  overflow:hidden; cursor:pointer; background:rgba(0,0,0,.35)}
-.cover img{position:absolute; inset:0; width:100%; height:100%; object-fit:cover; opacity:.85}
-.cover:hover{border-color:var(--pink)}
-.cover:hover img{opacity:1}
-.cover:hover .cap{opacity:1}
-.cover .cap{position:absolute; inset:0; z-index:1; display:flex; align-items:flex-end;
-  padding:.3rem; font-size:.6rem; line-height:1.2; opacity:0; transition:opacity .15s;
-  background:linear-gradient(transparent,rgba(0,0,0,.92) 55%)}
-.cover .cap b{color:var(--pink); margin-right:.2rem}
-.cover.nocover .cap{opacity:1; background:none; align-items:center; justify-content:center;
-  text-align:center}
+.cover{position:relative; aspect-ratio:3/4; border:2px solid var(--line); border-radius:.35rem;
+  overflow:hidden; cursor:pointer; background:rgba(0,0,0,.35); transition:transform .12s}
+.cover img{position:absolute; inset:0; width:100%; height:100%; object-fit:cover}
+/* the affordance: a numbered badge that is always there, and a caption that slides up on hover.
+   Without these the covers read as decoration and nobody discovers they are the way into the
+   transcript. */
+.cover .badge{position:absolute; top:.25rem; left:.25rem; z-index:2; width:1.15rem;
+  height:1.15rem; border-radius:50%; background:var(--pink); color:#06222a; font-size:.7rem;
+  font-weight:700; display:flex; align-items:center; justify-content:center}
+.cover .cap{position:absolute; inset:auto 0 0 0; z-index:1; padding:.3rem .35rem;
+  font-size:.68rem; line-height:1.25; background:rgba(0,0,0,.86);
+  transform:translateY(101%); transition:transform .14s}
+.cover .cap i{display:block; font-style:normal; color:var(--pink); font-size:.62rem}
+.cover:hover,.cover:focus-visible{transform:translateY(-2px); border-color:var(--pink)}
+.cover:hover .cap,.cover:focus-visible .cap{transform:translateY(0)}
+.cover.nocover .cap{transform:translateY(0); background:rgba(0,0,0,.55)}
+.side .hint{margin:.5rem 0 0; font-size:.7rem; color:var(--dim)}
 
 /* right: who they are */
 .bill{flex:1 1 22rem; min-width:16rem}
@@ -199,6 +206,40 @@ header.ep{padding-top:1.5rem}
   color:var(--dim); max-width:34rem}
 .bill .bio p{margin:0 0 .7rem; line-height:1.55}
 @media (max-width:640px){.side{flex:1 1 100%; max-width:22rem}}
+
+/* the network's own controls */
+.netbar{display:flex; flex-wrap:wrap; gap:.4rem; margin:.2rem 0 .6rem}
+.pill{border:2px solid var(--line); background:rgba(0,0,0,.3); color:inherit; cursor:pointer;
+  border-radius:2rem; padding:.3rem .8rem; font:inherit; font-size:.8rem}
+.pill span{color:var(--dim); font-size:.72rem; margin-left:.3rem}
+.pill:hover{border-color:var(--pink)}
+.pill.on{border-color:var(--pink); color:var(--pink)}
+.pill.on span{color:inherit}
+.pill.clear{margin-left:auto}
+#net .node{cursor:pointer; transition:opacity .12s}
+#net .edge{transition:opacity .12s}
+#net.pinned .node{cursor:zoom-out}
+.netnote a{color:var(--pink)}
+
+/* --- the games page: a game, its cover, and everyone who chose it --------------------------- */
+.games{list-style:none; margin:1.2rem 0 0; padding:0; display:grid; gap:.7rem}
+.gcard{display:flex; gap:1rem; border:2px solid var(--line); border-radius:.7rem;
+  background:rgba(0,0,0,.28); padding:.8rem .9rem; align-items:flex-start}
+/* the games two or more people chose are the ones worth arriving on, so they are marked */
+.gcard.multi{border-color:rgba(243,177,178,.42)}
+.gcard .art{flex:0 0 3.6rem; width:3.6rem; aspect-ratio:3/4; border-radius:.25rem;
+  overflow:hidden; background:rgba(0,0,0,.4)}
+.gcard .art img{width:100%; height:100%; object-fit:cover; display:block}
+.gcard .body{flex:1 1 auto; min-width:0}
+.gcard h3{margin:0; font-size:1rem; line-height:1.3}
+.gcard .sub{margin:.15rem 0 .45rem; color:var(--dim); font-size:.78rem}
+.gcard .who{display:flex; flex-wrap:wrap; gap:.35rem}
+.gcard .who a{display:inline-flex; align-items:baseline; gap:.35rem; text-decoration:none;
+  border:1px solid var(--line); border-radius:2rem; padding:.15rem .6rem; font-size:.8rem;
+  color:inherit}
+.gcard .who a:hover{border-color:var(--pink); color:var(--pink)}
+.gcard .who .ep{color:var(--dim); font-size:.72rem}
+.gcard .who a:hover .ep{color:inherit}
 
 /* the archive index, on top of the episode styles both pages share */
 .lede{color:var(--dim); max-width:38rem; margin:0 0 2rem}

@@ -1034,7 +1034,7 @@ function renderStats(d){
       + '<p class="note">Glenn out-talks him by nearly two to one on his own programme. But Simon'
       + ' says more here than he does anywhere else: ' + b.club_talk_low + '% of a'
       + ' Game Club against ' + d.transcripts.host_share + '% of a normal episode. Interviewing a'
-      + ' guest, his job is to stay out of the way; with Glenn he is arguing, and it shows.</p>'
+      + ' guest, his job is to stay out of the way.</p>'
       + rowList(b.club_talk)
       + '<h3 class="sub">Every game the club has taken, oldest first</h3>'
       + '<p class="note">Median release year <b>' + cl.median_year + '</b>, against '

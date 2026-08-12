@@ -111,14 +111,27 @@ function renderEpisode(d, back){
     + '<header class="ep"><div class="wrap hero">'
     + '<div class="side">'
     + (d.art ? '<div class="shot"><img src="' + d.art + '" alt="" loading="lazy"></div>' : '')
-    + '<p class="eyebrow">Perfect console:</p>'
-    + '<h2 class="cname">' + esc(d.console || '\u2014 never named \u2014') + '</h2>'
-    + '<ul class="covers">' + d.picks.map(p =>
-        '<li class="cover' + (p.cover ? '' : ' nocover') + '" data-go="t' + nearest(p.at) + '"'
-        + ' title="' + esc(p.t) + ' \u2014 jump to it">'
-        + (p.cover ? '<img src="' + p.cover + '" alt="" loading="lazy">' : '')
-        + '<span class="cap"><b>' + esc(p.n) + '</b> ' + esc(p.t) + '</span></li>').join('')
-    + '</ul></div>'
+    // A Game Club has no console and no five picks; its subject is one game, named in its own
+    // title. "Perfect console: never named" over an empty cover row described the absence.
+    + (d.club
+        ? '<p class="eyebrow">Game Club:</p><h2 class="cname">' + esc(d.club.game) + '</h2>'
+        : '<p class="eyebrow">Perfect console:</p>'
+          + '<h2 class="cname">' + esc(d.console || '\u2014 never named \u2014') + '</h2>')
+    + (d.club
+        ? '<ul class="covers one"><li class="cover' + (d.club.cover ? '' : ' nocover') + '">'
+          + (d.club.cover ? '<img src="' + d.club.cover + '" alt="" loading="lazy">' : '')
+          + '<span class="cap">' + esc(d.club.game)
+          + (d.club.year ? '<i>' + d.club.year + '</i>' : '') + '</span></li></ul>'
+          + '<p class="hint">One game, an hour, and no console. That is the format.</p>'
+        : '<ul class="covers">' + d.picks.map(p =>
+            '<li class="cover' + (p.cover ? '' : ' nocover') + '" data-go="t' + nearest(p.at) + '"'
+            + ' title="' + esc(p.t) + ' \u2014 jump to it">'
+            + (p.cover ? '<img src="' + p.cover + '" alt="" loading="lazy">' : '')
+            + '<span class="badge">' + esc(p.n) + '</span>'
+            + '<span class="cap">' + esc(p.t)
+            + (p.mins ? '<i>' + Math.round(p.mins) + ' min</i>' : '') + '</span></li>').join('')
+          + '</ul><p class="hint">Click a game to jump to it in the transcript</p>')
+    + '</div>'
     + '<div class="bill">'
     + '<a class="back" href="' + back.href + '">' + esc(back.label) + '</a>'
     + '<h1>' + esc(d.guest || d.title) + '</h1>'
@@ -172,7 +185,8 @@ function renderEpisode(d, back){
   // which the covers cannot show and is the more interesting number - a guest who spends twenty
   // minutes on one pick and four on another has told you which one they actually came to talk
   // about. The wrap and the sign-off are here too, because nothing else reaches them.
-  const longest = Math.max(1, ...d.picks.map(p => p.mins));
+  const longest = Math.max(1, ...d.picks.map(p => p.mins), 1);
+  if (d.picks.length){
   h += '<section class="console"><h2>How the hour went</h2>';
   for (const p of d.picks){
     h += '<div class="slot"><span class="n">' + esc(p.n) + '</span>'
@@ -189,6 +203,7 @@ function renderEpisode(d, back){
       + '<button class="open" data-go="t' + nearest(c[0]) + '">Open</button></div>';
   }
   h += '<p class="foot">Each bar is how long that game was talked about.</p></section>';
+  }
 
   // The console covers the five picks. The rest of the hour - the introduction, the naming of
   // the console, the sign-off - had no way in at all until now.
@@ -948,6 +963,16 @@ function renderStats(d){
       + ' have one. Two countries make almost the whole show; the third is the reason this archive'
       + ' has so many Spectrums and BBC Micros in it.</p>'
       + rowList(b.countries)
+      + (b.unchosen ? '<h2>The canon it has not got to yet</h2>'
+          + '<p class="note">IGDB\u2019s top ' + g.unchosen.of + ' games by critic and player'
+          + ' score together, counting only main releases with at least '
+          + fmt(g.unchosen.min_ratings) + ' ratings \u2014 no remasters and no ports, or the list'
+          + ' fills with second versions of games that have already been chosen.'
+          + ' <b>' + g.unchosen.missing + ' of those ' + g.unchosen.of + ' have never been picked'
+          + ' by anybody.</b> It is not that the show avoids the canon so much as that five picks'
+          + ' is a small number and guests choose what they loved rather than what scored well:'
+          + ' Ocarina of Time waited 131 episodes for its first mention.</p>'
+          + rowList(b.unchosen) : '')
       + '<h3 class="sub">Platforms, with a caveat</h3>'
       + '<p class="note">Every platform IGDB has ever seen a title on, which is not the machine it'
       + ' came out on — a 1984 Spectrum game sold on Steam today lists PC. Read this as where the'

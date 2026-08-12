@@ -1050,9 +1050,12 @@ function renderStats(d){
         + ' five to live with — so the overlap being this heavy is the finding.</p>'
         + rowList(b.club_shared);
     }
-    if (b.club_guests){
-      h += '<h3 class="sub">And the times somebody else came along</h3>'
-        + rowList(b.club_guests);
+    if (b.club_chose){
+      h += '<h3 class="sub">Whose pick the club played</h3>'
+        + '<p class="note">Some months the club plays a game a guest had already chosen, and the'
+        + ' episode title says whose. They were not in the room \u2014 the link goes to their own'
+        + ' episode, where they explain why they picked it.</p>'
+        + rowList(b.club_chose);
     }
   }
 

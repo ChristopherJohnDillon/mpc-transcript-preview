@@ -191,6 +191,15 @@ header.ep{padding-top:1.5rem}
 .cover:hover .cap,.cover:focus-visible .cap{transform:translateY(0)}
 .cover.nocover .cap{transform:translateY(0); background:rgba(0,0,0,.55)}
 .side .hint{margin:.5rem 0 0; font-size:.7rem; color:var(--dim)}
+/* the club plays a game somebody already chose in 21 of 22 cases, and who is the interesting part */
+.alsochose{margin:.7rem 0 0; font-size:.72rem; color:var(--dim); display:flex; flex-wrap:wrap;
+  gap:.3rem; align-items:baseline}
+.alsochose b{display:block; width:100%; color:var(--fg); font-size:.68rem; text-transform:uppercase;
+  letter-spacing:.08em; margin-bottom:.15rem}
+.alsochose a{text-decoration:none; color:inherit; border:1px solid var(--line);
+  border-radius:2rem; padding:.1rem .5rem}
+.alsochose a:hover{border-color:var(--pink); color:var(--pink)}
+.alsochose a span{opacity:.6}
 
 /* right: who they are */
 .bill{flex:1 1 22rem; min-width:16rem}
@@ -240,6 +249,14 @@ header.ep{padding-top:1.5rem}
 .gcard .who a:hover{border-color:var(--pink); color:var(--pink)}
 .gcard .who .ep{color:var(--dim); font-size:.72rem}
 .gcard .who a:hover .ep{color:inherit}
+
+/* the listing is in bands now: the programme, then the things that share its feed. 194 cards in
+   one wall put a Game Club between two interviews and read as if they were the same thing. */
+.band{margin:0 0 2.4rem}
+.band h2{margin:0 0 .2rem; font-size:1.15rem; display:flex; align-items:baseline; gap:.5rem}
+.band h2 span{font-size:.75rem; font-weight:600; color:var(--dim); border:1px solid var(--line);
+  border-radius:2rem; padding:.1rem .5rem}
+.band .blurb{margin:0 0 1rem; color:var(--dim); font-size:.85rem}
 
 /* the archive index, on top of the episode styles both pages share */
 .lede{color:var(--dim); max-width:38rem; margin:0 0 2rem}

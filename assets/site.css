@@ -328,6 +328,21 @@ header.ep{padding-top:1.5rem}
 .figure span{display:block; color:var(--faint); font-size:.78rem; margin-top:.35rem}
 
 .stats h2{font-size:1.15rem; margin:2.75rem 0 .4rem}
+/* The two band headings are a level above the 25 section headings, and say so by size rather than
+   by tag - demoting every h2 underneath them would have rewritten the document outline of a page
+   whose headings are its only navigation. */
+.stats .bandhead{font-size:1.9rem; letter-spacing:-.01em; margin:0 0 .25rem;
+  padding-bottom:.5rem; border-bottom:1px solid var(--line); color:var(--salmon)}
+.stats .band{margin-top:3.5rem}
+.stats .band:first-of-type{margin-top:2.5rem}
+/* Sticky, so the games stay one click away from the bottom of the show's numbers. scroll-margin
+   on the bands keeps the heading clear of the bar it jumps under. */
+.bands{position:sticky; top:0; z-index:5; display:flex; gap:1.25rem; margin:2rem 0 0;
+  padding:.7rem 0; background:linear-gradient(var(--sheet-solid) 78%,transparent);
+  font-size:.82rem; letter-spacing:.06em; text-transform:uppercase}
+.bands a{color:var(--dim); text-decoration:none}
+.bands a:hover{color:var(--salmon)}
+.stats .band{scroll-margin-top:3.5rem}
 .stats h3.sub{font-size:.82rem; letter-spacing:.08em; text-transform:uppercase; color:var(--dim);
   margin:1.5rem 0 .3rem; font-weight:600}
 .stats .note{color:var(--faint); font-size:.82rem; margin:0 0 1.1rem; max-width:36rem}
